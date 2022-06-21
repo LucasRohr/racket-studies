@@ -14,16 +14,12 @@
 
 ; Function for calculation of a bakery shopping list total price
 
-(define bread_multiplier 2)
-(define cake_multiplier 3)
-(define croissant_multiplier 4)
-
 (define (bakery_products_price bread_quantity cake_quantity croissant_quantity)
   (circle_number
      (+
-       (* bread_quantity bread_multiplier)
-       (* cake_quantity cake_multiplier)
-       (* croissant_quantity croissant_multiplier)
+       (* bread_quantity 2)
+       (* cake_quantity 3)
+       (* croissant_quantity 4)
      )
   )
 )
