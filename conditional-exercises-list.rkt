@@ -24,36 +24,48 @@
 
 ;; ================== Number 2 ==================
 
+;; format-number Number => Number
+;; Objective: given a exact number, transforms it into inexact value with two decimal places
+
+;; Examples:
+;; (format-number 8.7) = #i8.7
+
+(define (format-number number)
+   (exact->inexact(/ (round (* number 10)) 10))
+)
+
+(check-within (format-number 8.7) #i8.7 0.1)
+
 ;; render-star-grade: Number => Image
 ;; Objective: given the grade of a student, it returns it rendered inside a yellow star
 
+;; Examples:
+;; (render-star-grade 8.7) =  (overlay
+;;     (text (number->string (format-number 8.7)) 15 "black")
+;;     (star 45 "solid" "yellow")
+;;  )
+;; (render-star-grade 9) =  (overlay
+;;     (text (number->string (format-number 9)) 15 "black")
+;;     (star 45 "solid" "yellow")
+;;  )
+
 (define (render-star-grade average)
   (overlay
-     (text (~r average) 15 "black")
+     (text (number->string (format-number average)) 15 "black")
      (star 45 "solid" "yellow")
   )
 )
 
-;; Examples:
-;; (render-star-grade 8.7) =  (overlay
-;;     (text (~r 8.7) 15 "black")
-;;     (star 45 "solid" "yellow")
-;;  )
-;; (render-star-grade 9) =  (overlay
-;;     (text (~r 9) 15 "black")
-;;     (star 45 "solid" "yellow")
-;;  )
-
 (check-expect (render-star-grade 8.7)
       (overlay
-         (text (~r 8.7) 15 "black")
+         (text (number->string (format-number 8.7)) 15 "black")
          (star 45 "solid" "yellow")
       )
 )
 
 (check-expect (render-star-grade 9)
       (overlay
-         (text (~r 9) 15 "black")
+         (text (number->string (format-number 9)) 15 "black")
          (star 45 "solid" "yellow")
       )
 )
@@ -66,20 +78,20 @@
 ;; Examples:
 ;; (render-red-grade 8.5) =
 ;; (overlay
-;;     (text (~r 8.5) 18 "white")
+;;     (text (number->string (format-number 8.5)) 18 "white")
 ;;     (circle 45 "solid" "red")
 ;;  )
 
 (define (render-red-grade average)
   (overlay
-     (text (~r average) 18 "white")
+     (text (number->string (format-number average)) 18 "white")
      (circle 45 "solid" "red")
   )
 )
 
 (check-expect (render-red-grade 8.5)
      (overlay
-       (text (~r 8.5) 18 "white")
+       (text (number->string (format-number 8.5)) 18 "white")
        (circle 45 "solid" "red")
      )
 )
@@ -117,6 +129,8 @@
 
 (check-expect (student-average-render 7 9 8) (render-star-grade (student-average 7 9 8)))
 (check-expect (student-average-render 7 5 4) (render-red-grade (student-average 7 5 4)))
+
+(student-average-render 7 9 8)
 
 ;; ====================================
 
