@@ -222,8 +222,8 @@
 
 (define (jogada-válida? numero-carta-mao cor-carta-mao numero-carta-mesa cor-carta-mesa)
    (or
-    (or (string=? cor-carta-mao "preto") (string=? cor-carta-mesa "preto"))
-    (or (= numero-carta-mao numero-carta-mesa) (string=? cor-carta-mao cor-carta-mesa))
+    (or (string=? cor-carta-mao "preto") (string=? cor-carta-mesa "preto")) ;; Caso os numeros ou cores da mao e da mesa baterem, a jogada é valida
+    (or (= numero-carta-mao numero-carta-mesa) (string=? cor-carta-mao cor-carta-mesa)) ;; Caso a carta da mao ou da mesa for coringa, a jogada é valida
    )
 )
 
