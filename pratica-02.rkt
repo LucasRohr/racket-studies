@@ -245,6 +245,7 @@
 ;; -----------------
 
 (define-struct mão (carta-1 carta-2 carta-3 carta-4))
+
 ;; Um elemento do conjunto Mão é
 ;;  (make-mão carta-1 carta-2 carta-3 carta-4) onde
 ;;  carta-1 : CartaMão, representa a primeira carta da mão
@@ -317,7 +318,7 @@
   (beside
     ;; a imagem da carta da posição 1 da mao
     (cond
-      [(string? (mão-carta-1 mão)) (text LIVRE 20 "black")]
+      [(string? (mão-carta-1 mão)) (text "\tLivre\t" 20 "black")]
       [else
         (desenha-carta
             (cond
@@ -333,7 +334,7 @@
     )
     ;; a imagem da carta da posição 2 da mao
     (cond
-      [(string? (mão-carta-2 mão)) (text LIVRE 20 "black")]
+      [(string? (mão-carta-2 mão)) (text "\tLivre\t" 20 "black")]
       [else
         (desenha-carta
             (cond
@@ -349,7 +350,7 @@
     )
     ;; a imagem da carta da posição 3 da mao
     (cond
-      [(string? (mão-carta-3 mão)) (text LIVRE 20 "black")]
+      [(string? (mão-carta-3 mão)) (text "\tLivre\t" 20 "black")]
       [else
         (desenha-carta
             (cond
@@ -365,7 +366,7 @@
     )
     ;; a imagem da carta da posição 4 da mao
     (cond
-      [(string? (mão-carta-4 mão)) (text LIVRE 20 "black")]
+      [(string? (mão-carta-4 mão)) (text "\tLivre\t" 20 "black")]
       [else
         (desenha-carta
             (cond
