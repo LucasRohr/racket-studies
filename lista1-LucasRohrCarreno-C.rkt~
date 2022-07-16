@@ -1,0 +1,587 @@
+;; The first three lines of this file were inserted by DrRacket. They record metadata
+;; about the language level of this file in a form that our tools can easily process.
+#reader(lib "htdp-beginner-reader.ss" "lang")((modname lista1-LucasRohrCarreno-C) (read-case-sensitive #t) (teachpacks ((lib "image.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ((lib "image.rkt" "teachpack" "2htdp")) #f)))
+;; Nome: Lucas Rohr Carreño
+
+
+;; ========================================================================================
+;;                              DEFINIÇÕES DE DADOS
+;; ========================================================================================
+
+;; Tipos:
+
+;; -----------------
+;; TIPO Carta:
+;; -----------------
+(define-struct carta (cor valor))  
+;; Um elemento do conjunto Carta é
+;;   (make-carta c v)     onde
+;;   c : String, é a cor da carta, que pode ser "azul", "verde", "amarelo" ou "vermelho" 
+;;   v : Número, é o valor da carta, que pode ser qualquer inteiro entre 0 e 9,
+;;               ou um número negativo -1 (PulaVez), -2 (Compra2), -3 (Inverte)
+
+;; -------------
+;; TIPO CartaUNO
+;; -------------
+;; Uma CartaUNO é
+;; 1. Uma Carta, ou
+;; 2. Um Número
+
+;; ---------------------
+;; TIPO CartaUNOouString
+;; ---------------------
+;; Uma  CartaUNOouString é
+;; 1. Uma CartaUNO, ou
+;; 2. Uma String
+
+;; -----------------
+;; TIPO Mão
+;; -----------------
+(define-struct mão (carta1 carta2 carta3 carta4))
+;; Um elemento do conjunto Mão é
+;;   (make-mão p1 p2 p3 p4 )     onde
+;;    p1, p2, p3, p4: CartaUNOouString, que é carta ocupando cada posição.
+
+
+
+;; Definição de constantes:
+
+;; Constantes para os valores das cartas especiais do UNO:
+(define PULA_VEZ -1)
+(define COMPRA2 -2)
+(define INVERTE -3)
+(define CURINGA -5)
+(define CURINGA_COMPRA4 -4)
+
+;; Constante representanto a posição da mão livre:
+(define LIVRE "Livre")
+
+;; Constantes de imagens:
+(define CIRCULO_BRANCO (circle 40 "solid""white"))
+(define QUADRADOS_COLORIDOS
+         (above                                  
+            (beside (rectangle 50 75 "solid" "red")
+                    (rectangle 50 75 "solid" "green"))
+            (beside (rectangle 50 75 "solid" "yellow")
+                    (rectangle 50 75 "solid" "blue"))))
+(define CONTORNO_PRETO (rectangle 110 160 "outline" "black"))
+
+;; Constantes de cartas:
+(define AZUL3  (make-carta "azul" 3))
+(define VERMELHO5 (make-carta "vermelho" 5))
+(define VERMELHO-COMPRA2 (make-carta "vermelho" -2))
+(define VERDE3 (make-carta "verde" 3))
+(define AMARELO1 (make-carta "amarelo" 1))
+
+;; Constantes de mãos:
+(define MAO_1(make-mão
+     (make-carta "verde" 0)
+     (make-carta "amarelo" INVERTE)
+     CURINGA
+     CURINGA_COMPRA4
+  )
+)
+
+(define MAO_2(make-mão
+     (make-carta "verde" 0)
+     (make-carta "amarelo" PULA_VEZ)
+     (make-carta "vermelho" 2)
+     (make-carta "amarelo" 7)
+  )
+)
+
+(define MAO_3 (make-mão
+     (make-carta "verde" 0)
+     (make-carta "amarelo" PULA_VEZ)
+     LIVRE
+     LIVRE
+  )
+)
+
+(define MAO_4 (make-mão
+     (make-carta "vermelho" 9)
+     (make-carta "amarelo" PULA_VEZ)
+     LIVRE
+     (make-carta "verde" INVERTE)
+  )
+)
+
+
+
+
+;; ========================================================================================
+;;                                 FUNÇÕES DOS LABS 1 E 2
+;; ========================================================================================
+
+;; ========================
+;; JOGADA-VÁLIDA?
+;; ========================
+;; jogada-válida? : CartaUNO CartaUNO -> Booleano
+;; Objetivo: A função analiza duas cartas e verifica se é possível
+;; jogar uma sobre a outra, de acordo com as regras do UNO
+;; Exemplos/teste:
+    (check-expect (jogada-válida?  AZUL3 VERDE3)   #t)
+    (check-expect (jogada-válida?  AZUL3 AMARELO1) #f)
+    (check-expect (jogada-válida?  VERMELHO5 VERMELHO-COMPRA2) #t)
+    (check-expect (jogada-válida?  VERMELHO-COMPRA2 CURINGA)   #t)
+(define (jogada-válida? @carta-mesa @carta-mao)
+     (cond
+          ;; se a carta da mão for curinga, a jogada é válida
+          [(number? @carta-mao)  #t]
+          ;; se a carta da mesa for curinga, a jogada é válida
+          [(number? @carta-mesa) #t] 
+          ;; se as duas cartas forem da mesma cor ou do mesmo tipo/valor, a jogada é válida
+          [(or (string=? (carta-cor @carta-mesa)(carta-cor @carta-mao))
+               (= (carta-valor @carta-mesa) (carta-valor @carta-mao))) #t]
+          ;; senão, a jogada é inválida
+          [else #f] ))
+
+;;====================
+;; TRADUZ-COR
+;;====================
+;; traduz-cor : String -> String
+;; Objetivo: a função recebe uma cor de carta UNO, e retorna a respectiva cor
+;; em ingles, ou seja, "blue", "green", "yellow", "red" ou "black".
+;; Exemplos:
+     ;; (traduz-cor "azul") = "blue"
+     ;; (traduz-cor "verde") = "green"
+(define (traduz-cor uma-cor) ;; Dada uma cor uma-cor
+  (cond
+    ;; se uma-cor for "azul, devolver "blue"
+    [(string=? "azul" uma-cor) "blue"]
+    ;; se C for "verdel, devolver "green"
+    [(string=? "verde" uma-cor) "green"]
+    ;; se C for "vermelho, devolver "red"
+    [(string=? "vermelho" uma-cor) "red"]
+    ;; se C for "amarelol, devolver "yellow"
+    [(string=? "amarelo" uma-cor) "yellow"]
+    ;; senão, devolver "black"
+    [else "black"]))
+
+;; ========================
+;; ESCOLHE-FUNDO 
+;; ========================
+;; escolhe-fundo: String -> Imagem
+;; Dada uma cor, que pode ser amarelo, verde, vermelho, azul ou preto
+;; gera a imagem de fundo para uma carta de UNO desta cor.
+;; Exemplos:
+     ;; (escolhe-fundo "vermelho")  desenha o fundo de uma carta vermelha
+     ;; (escolhe-fundo "preto")     desenha o fundo de uma carta curinga
+(define (escolhe-fundo *cor);; Dada uma cor *cor
+    (overlay 
+        CIRCULO_BRANCO ;; circulo branco
+        (cond
+           ;; se a cor COR for preto, desenhar os quadrados coloridos no fundo
+           [(string=? *cor "preto") QUADRADOS_COLORIDOS]
+           ;; senão, desenhar um retângulo da cor desejada
+           [else (rectangle 100 150 "solid" (traduz-cor *cor))])  ;; retangulo da cor da carta
+        CONTORNO_PRETO));; contorno preto
+
+;; ========================
+;; DESENHA-CARTAS
+;; ========================
+;; desenha-carta : Número String -> Imagem
+;; Objetivo: Dados um número e uma cor, representando uma carta de UNO,
+;; gera uma imagem para esta carta,
+;; Exemplos:
+      ;; (desenha-carta 4 "vermelha")  desenha a carta número 4 vermelha
+      ;; (desenha-carta COMPRA4 "preta")    desenha a carta curinga compra 4
+(define (desenha-carta *num *cor)
+  (overlay ;; sobrepor
+          (escolhe-simbolo *num)  ;; o desenho do símbolo da carta
+          (escolhe-fundo *cor)))  ;; com o fundo da carta
+
+;; ========================
+;; ESCOLHE-SIMBOLO
+;; ========================
+;; escolhe-simbolo: Número -> Imagem
+;; Dado um número, que pode ser de 0 a 9 ou as constantes referentes às
+;; cartas especiais de UNO, devolve uma imagem que representa este número na carta.
+;; Exemplos/testes:
+      (check-expect (escolhe-simbolo 8) (text (number->string 8) 70 "black"))
+      (check-expect (escolhe-simbolo COMPRA2) (text "+2" 60 "black"))
+(define (escolhe-simbolo *num)
+  (cond
+      ;; se a carta for numérica,     desenha a carta numérica
+      [(and (>= *num  0) (<= *num 9))  (text (number->string *num) 70 "black")]
+      ;; se a carta for um COMPRA2, desenha +2
+      [(= *num COMPRA2)   (text "+2" 60 "black")]
+      ;; se a carta for um INVERTE, desenha «
+      [(= *num INVERTE)   (text "«" 60 "black")]    
+      ;; se a carta for um PULA_VEZ, desenha Ø
+      [(= *num PULA_VEZ)   (text "Ø" 60 "black")] 
+      ;; se a carta for um CURINGA, não desenha nada (devolve uma imagem vazia)
+      [(= *num CURINGA)   empty-image] 
+      ;; se a carta for um CURINGA_COMPRA4, devolve +4
+      [(= *num CURINGA_COMPRA4)  (text "+4" 60 "black")]))
+
+;; ========================
+;; DESENHA-MÃO
+;; ========================
+;; desenha-mão: Mão -> Imagem
+;; Dada uma mão, gera uma imagem com as cartas da mão, lado a lado
+;; Exemplo:
+    ;; (desenha-mão (make-mão AZUL3 VERMELHO5 CURINGA AZUL-INVERTE)  desenha as cartas AZUL3 VERMELHO5 CURINGA AZUL-INVERTE, lado a lado
+(define (desenha-mão @mao) ;; Dada uma mão @mao
+  (beside ;; coloca lado a lado
+        (desenha-carta-mão (mão-carta1 @mao))    ;; a imagem da carta da posição 1 da @mao
+        (desenha-carta-mão (mão-carta2 @mao))    ;; a imagem da carta da posição 2 da @mao
+        (desenha-carta-mão (mão-carta3 @mao))    ;; a imagem da carta da posição 3 da @mao
+        (desenha-carta-mão (mão-carta4 @mao))))  ;; a imagem da carta da posição 4 da @mao
+
+;; ========================
+;; DESENHA-CARTA-MÃO
+;; ========================
+;; desenha-carta-mão: Mão -> Imagem
+;; Dada uma carta da mão, geraa imagem da carta, se for uma carta,
+;; ou uma imagem de um retângulo escrito LIVRE, se não for carta.
+;; Exemplos:
+     ;; (desenha-carta-mão VERMELHO5) desenha ca carta vermelho 5
+     ;; (desenha-carta-mão LIVRE) desenha um retângulo escrito LIVRE
+(define (desenha-carta-mão @carta)
+  (cond
+      ;; se a posição for livre, desenha um retângulo escrito livre
+      [(string? @carta) (overlay (text @carta 40 "black") CONTORNO_PRETO)]
+      ;; se a carta for um curinga, desenha o curinga correspondente
+      [(number? @carta) (desenha-carta @carta "preto")]
+      ;; senão, desenha a carta colorida correspondente
+      [else (desenha-carta (carta-valor @carta) (carta-cor @carta))]))
+
+
+
+
+
+
+;; ==============================================================
+;; 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+;; ==============================================================
+
+;; Definição de constantes:
+(define PONTUAÇÃO_CARTA_ESPECIAL 20)
+(define PONTUAÇÃO_CARTA_CURINGA 50)
+(define PONTUAÇÃO_STRING 0)
+
+;; retorna-pontuação-carta: Carta -> Número
+;; obj: Dada uma carta de UNO, devolve a pontuação conforme o tipo da carta, auxiliando a função pontuação
+
+;; Exemplos/testes:
+;; (retorna-pontuação-carta (make-carta "azul" 3)) = 3
+;; (retorna-pontuação-carta (make-carta "vermelho" -2)) = 20
+
+(define (retorna-pontuação-carta carta)
+  (cond
+    [(and (>= (carta-valor carta) 0) (<= (carta-valor carta) 9)) (carta-valor carta)]
+    [(or (= (carta-valor carta) PULA_VEZ) (= (carta-valor carta) COMPRA2) (= (carta-valor carta) INVERTE)) PONTUAÇÃO_CARTA_ESPECIAL]
+  )
+)
+
+;; Testes:
+
+(check-expect (retorna-pontuação-carta (make-carta "azul" 3)) 3)
+(check-expect (retorna-pontuação-carta (make-carta "vermelho" -2)) 20)
+
+
+;; pontuação: CartaUNOouString -> Número
+;; obj: Dada uma carta de UNO ou String, devolve a pontuação conforme o tipo de entrada,
+;; seja carta numérica, especial ou a String em si
+
+;; Exemplos/testes:
+;; (pontuação (make-carta "vermelho" -2)) = 20
+;; (pontuação "Livre") = 0
+;; (pontuação -5) = 50
+
+(define (pontuação carta-uno-ou-string)
+  (cond
+    [(carta? carta-uno-ou-string) (retorna-pontuação-carta carta-uno-ou-string)]
+    [(number? carta-uno-ou-string) PONTUAÇÃO_CARTA_CURINGA]
+    [else PONTUAÇÃO_STRING]
+  )
+)
+
+;; Testes:
+
+(check-expect (pontuação (make-carta "vermelho" -2)) 20)
+(check-expect (pontuação "Livre") 0)
+(check-expect (pontuação -5) 50)
+
+
+;; ==============================================================
+;; 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+;; ==============================================================
+
+;; Definição de constantes:
+(define VALOR_UNIDADE_CARTA 1)
+(define VALOR_UNIDADE_STRING 0)
+
+;; retorna-valor-unidade-carta: CartaUNOouString -> Número
+;; obj: Dada uma CartaUNO ou String, retorna o valor de uma unidade para soma caso
+;; for carta e zero para caso for uma String, para somar valor algum por estar Livre
+
+;; Exemplos/testes:
+;; (retorna-valor-unidade-carta (make-carta "vermelho" -2)) = 1
+;; (retorna-valor-unidade-carta "Livre") = 0
+;; (retorna-valor-unidade-carta -5) = 1
+
+(define (retorna-valor-unidade-carta carta-uno-ou-string)
+  (cond
+    [(or (carta? carta-uno-ou-string) (number? carta-uno-ou-string)) VALOR_UNIDADE_CARTA]
+    [else VALOR_UNIDADE_STRING]
+  )
+)
+
+;; Testes:
+(check-expect (retorna-valor-unidade-carta (make-carta "vermelho" -2)) 1)
+(check-expect (retorna-valor-unidade-carta "Livre") 0)
+(check-expect (retorna-valor-unidade-carta -5) 1)
+
+;; conta-cartas: Mão -> Número
+;; obj: Dada uma estrutura de Mão, sendo um conjunto de cartas UNO,
+;; devolve quantas existem no total, excluindo espaços livres
+
+;; Exemplos/testes:
+;; (conta-cartas MAO_1) = 4
+;; (conta-cartas MAO_3) = 2
+
+(define (conta-cartas mão)
+  (+
+    (retorna-valor-unidade-carta (mão-carta1 mão))
+    (retorna-valor-unidade-carta (mão-carta2 mão))
+    (retorna-valor-unidade-carta (mão-carta3 mão))
+    (retorna-valor-unidade-carta (mão-carta4 mão))
+  )
+)
+
+;; Testes:
+(check-expect (conta-cartas MAO_1) 4)
+(check-expect (conta-cartas MAO_3) 2)
+
+;; ==============================================================
+;; 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 3
+;; ==============================================================
+
+;; -----------------
+;; TIPO Jogador:
+;; -----------------
+
+(define-struct jogador (nome pontos mão))
+;; Um elemento do conjunto Jogador é
+;;   (make-jogador n p m) onde
+;;   n : String, é o nome do jogador
+;;   p : Número, é o número total de pontos do jogador
+;;   n : Mão, é a mão atual do jogador, podendo possuir cartas e espaços vazios
+
+;; Constantes do tipo jogador:
+
+(define JOGADOR_1
+   (make-jogador "Ronaldo" 23 MAO_1)
+)
+
+(define JOGADOR_2
+   (make-jogador "Jar-jar" 25 MAO_4)
+)
+
+;; ==============================================================
+;; 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 
+;; ==============================================================
+
+;; atualiza-pontos: Jogador -> Jogador
+;; obj: Dada uma estrutura de Jogador, utiliza das cartas presentes na mão do Jogador
+;; para calcular qual valor deve ser somado à sua pontuação no jogo
+
+;; Exemplos/testes:
+;; (atualiza-pontos JOGADOR_1) = (make-jogador "Ronaldo" 143 MAO_1)
+;; (atualiza-pontos JOGADOR_2) = (make-jogador "Jar-jar" 45 MAO_4)
+  
+(define (atualiza-pontos jogador)
+  (make-jogador
+     (jogador-nome jogador)
+     (+
+      (jogador-pontos jogador)
+      (pontuação (mão-carta1 (jogador-mão jogador)))
+      (pontuação (mão-carta2 (jogador-mão jogador)))
+      (pontuação (mão-carta3 (jogador-mão jogador)))
+      (pontuação (mão-carta4 (jogador-mão jogador)))
+     )
+     (jogador-mão jogador)
+  )
+)
+
+;;Testes:
+(check-expect (atualiza-pontos JOGADOR_1) (make-jogador "Ronaldo" 143 MAO_1))
+(check-expect (atualiza-pontos JOGADOR_2) (make-jogador "Jar-jar" 74 MAO_4))
+
+;; ==============================================================
+;; 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 5 
+;; ==============================================================
+
+;; Definição de constante:
+(define MENSAGEM_EMPATE "Empate")
+
+;; -----------------
+;; TIPO Par:
+;; -----------------
+
+(define-struct par (nome-jogador pontuação))
+;; Um elemento do conjunto Par é
+;;   (make-par n p) onde
+;;   n : String, é o nome do jogador vencedor
+;;   p : Número, é o número total de pontos do jogador vencedor
+
+;; -----------------
+;; TIPO Resutado:
+;; -----------------
+;; Um  Resutado é
+;; 1. Um Par, ou
+;; 2. Uma String
+
+;; define-vencedor: Jogador, Jogador -> Resutado
+;; obj: Dados dois jogadores, compara suas pontuações, retornando o nome e pontos do vencedor
+;; caso haja um ou uma mensagem de empate caso empatem
+
+;; Exemplos/testes:
+;; (define-vencedor JOGADOR_1 JOGADOR_2) = (make-par "Ronaldo" 23)
+;; (define-vencedor JOGADOR_2 JOGADOR_2) = "Empate"
+
+(define (define-vencedor jogador1 jogador2)
+  (cond
+    [
+     (> (jogador-pontos jogador1) (jogador-pontos jogador2))
+     (make-par (jogador-nome jogador2) (jogador-pontos jogador2))
+    ]
+    [
+     (< (jogador-pontos jogador1) (jogador-pontos jogador2))
+     (make-par (jogador-nome jogador1) (jogador-pontos jogador1))
+    ]
+    [else MENSAGEM_EMPATE]
+  )
+)
+
+;;Testes:
+(check-expect  (define-vencedor JOGADOR_1 JOGADOR_2) (make-par "Ronaldo" 23))
+(check-expect  (define-vencedor JOGADOR_2 JOGADOR_2) "Empate")
+
+
+;; ==============================================================
+;; 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 6 
+;; ==============================================================
+
+;;Definição de constantes:
+(define MENSAGEM_SEM_CARTAS "Não tenho cartas para jogar")
+
+;; -----------------
+;; TIPO ResultadoJogada:
+;; -----------------
+;; Um  ResultadoJogada: é
+;; 1. Uma CartaUNO, ou
+;; 2. Uma String
+
+
+;; valida-jogada-carta-uno-ou-string: CartaUNOouString CartaUNO -> Booleano
+;; obj: Dada uma CartaUNO ou String da mão do jogador e carta da mesa
+;; retorna se pode fazer uma jogada combinando as quartas levando em conta
+;; um espaço vazio na mão
+
+;; Exemplos/testes:
+;; (valida-jogada-carta-uno-ou-string -5 VERMELHO-COMPRA2) = #t
+;; (valida-jogada-carta-uno-ou-string LIVRE AZUL3) = #f
+
+(define (valida-jogada-carta-uno-ou-string carta-uno-ou-string carta-mesa)
+  (cond
+    [(string? carta-uno-ou-string) #f]
+    [else (jogada-válida? carta-uno-ou-string carta-mesa)]
+  )
+)
+
+;;Testes:
+(check-expect (valida-jogada-carta-uno-ou-string -5 VERMELHO-COMPRA2) #t)
+(check-expect (valida-jogada-carta-uno-ou-string LIVRE AZUL3) #f)
+
+
+;; define-jogada: Jogador CartaUNO -> ResultadoJogada
+;; obj: Dados um Jogador e uma CartaUNO da mesa, decide qual carta da mão do jogador ele pode jogar
+;; ou retorna que não possui carta para jogar
+
+;; Exemplos/testes:
+;; (define-jogada JOGADOR_1 VERMELHO-COMPRA2) = -5
+;; (define-jogada JOGADOR_2 AZUL3) = MENSAGEM_SEM_CARTAS
+;; (define-jogada JOGADOR_2 AMARELO1) = (make-carta "amarelo" PULA_VEZ)
+
+(define (define-jogada jogador carta-mesa)
+  (cond
+    [(valida-jogada-carta-uno-ou-string (mão-carta1 (jogador-mão jogador)) carta-mesa) (mão-carta1 (jogador-mão jogador))]
+    [(valida-jogada-carta-uno-ou-string (mão-carta2 (jogador-mão jogador)) carta-mesa) (mão-carta2 (jogador-mão jogador))]
+    [(valida-jogada-carta-uno-ou-string (mão-carta3 (jogador-mão jogador)) carta-mesa) (mão-carta3 (jogador-mão jogador))]
+    [(valida-jogada-carta-uno-ou-string (mão-carta4 (jogador-mão jogador)) carta-mesa) (mão-carta4 (jogador-mão jogador))]
+    [else MENSAGEM_SEM_CARTAS]
+  )
+)
+
+;;Testes:
+(check-expect (define-jogada JOGADOR_1 VERMELHO-COMPRA2) -5)
+(check-expect (define-jogada JOGADOR_2 AZUL3) MENSAGEM_SEM_CARTAS)
+(check-expect (define-jogada JOGADOR_2 AMARELO1) (make-carta "amarelo" PULA_VEZ))
+
+;; ==============================================================
+;; 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7 7  
+;; ==============================================================
+
+;; desenha-carta-escolhida: CartaUNO -> Imagem
+;; obj: Dada uma carta da mão, gera imagem da carta, se for uma carta,
+;; ou uma imagem de um retângulo escrito LIVRE, se não for carta.
+
+;; Exemplos:
+;; (desenha-carta-escolhida: VERMELHO5) = desenha carta vermelho 5
+;; (desenha-carta-escolhida: -5) = desenha carta curinga compra 4
+
+(define (desenha-carta-escolhida carta)
+  (cond
+      ;; se a carta for um curinga, desenha o curinga correspondente
+      [(number? carta) (desenha-carta carta "preto")]
+      ;; senão, desenha a carta colorida correspondente
+      [else (desenha-carta (carta-valor carta) (carta-cor carta))]
+  )
+)
+
+;; mostra-jogada: Jogador CartaUNO -> Imagem
+;; obj: Dados um Jogador e uma CartaUNO da mesa, mostra em tela
+;; os componentes da jogada, sendo eles o jogador, sua mão, a carta
+;; na mesa e qual carta o jogador pode jogar ou uma mensagem de que
+;; ele não possui cartar para jogar
+
+;; Exemplos/testes:
+;; (mostra-jogada JOGADOR_1 VERMELHO-COMPRA2) = imagem com carta curinga para jogar
+;; (mostra-jogada JOGADOR_2 AZUL3) = imagem com mensagem de "sem carta" para jogar
+;; (mostra-jogada JOGADOR_2 AMARELO1) = imagem da carta amarela de pula vez para jogar
+
+(define (mostra-jogada jogador carta-mesa)
+  (above
+     (beside
+       (text "Jogador: " 18 "darkgreen")
+       (text (jogador-nome jogador) 18 "darkgreen")
+     )
+
+     (above
+       (text "Mão: " 18 "black")
+       (desenha-mão (jogador-mão jogador))
+     )
+
+     (above
+        (text "Mesa: " 18 "black")
+        (overlay
+          (desenha-carta-escolhida carta-mesa)
+          (circle 140 "solid" "brown")
+        )
+     )
+
+     (above
+       (text "Carta selecionada: " 18 "black")
+       (cond
+         ((string? (define-jogada jogador carta-mesa))  (text MENSAGEM_SEM_CARTAS 18 "red"))
+         [else (desenha-carta-escolhida (define-jogada jogador carta-mesa))]
+       )
+     )
+  )
+)
+
+(mostra-jogada JOGADOR_2 AZUL3)
+(mostra-jogada JOGADOR_2 AMARELO1)
