@@ -247,12 +247,9 @@
 ;; (cartas-válidas JOGADOR_2 CARTA_CURINGA)
 (define (cartas-válidas jogador carta-mesa)
   (cond
-    ;; Se a lista estiver vazia, então devolve um valor vazio
     [(empty? (jogador-cartas jogador)) empty]
-    ;; Se a jogada for válida, adiciona a primeira carta do jogador ao restante da lista
     [(jogada-válida? (first (jogador-cartas jogador)) carta-mesa)
      (cons (first (jogador-cartas jogador)) (cartas-válidas (monta-jogador-resto-cartas jogador) carta-mesa))]
-    ;; Senão, retorna a lista atual de cartas
     [else (cartas-válidas (monta-jogador-resto-cartas jogador) carta-mesa)]
   )
 )
@@ -307,41 +304,14 @@
 ;; i) uma ListaCartaPtLm ou
 ;; ii) uma String
 
-(define PONTUAÇÃO_CARTA_ESPECIAL 20)
-(define PONTUAÇÃO_CARTA_CURINGA 50)
-
-;; retorna-pontuação-carta: Carta -> Número
-;; obj: Dada uma estrutura do tipo Carta, devolve a pontuação conforme o tipo da carta,
-;; numérica ou especial, auxiliando a função pontuação
-
-;; Exemplos:
-;; (retorna-pontuação-carta (make-carta "azul" 3)) = 3
-;; (retorna-pontuação-carta (make-carta "vermelho" -2)) = 20
-
-(define (retorna-pontuação-carta carta)
-  (cond
-    [(and (>= (carta-valor carta) 0) (<= (carta-valor carta) 9)) (carta-valor carta)]
-    [(or (= (carta-valor carta) PULA_VEZ)
-         (= (carta-valor carta) COMPRA2)
-         (= (carta-valor carta) INVERTE))
-     PONTUAÇÃO_CARTA_ESPECIAL]
-    [else PONTUAÇÃO_CARTA_CURINGA]))
-
-;; Testes:
-
-(check-expect (retorna-pontuação-carta AZUL3) 3)
-(check-expect (retorna-pontuação-carta VERMELHO-COMPRA2) 20)
-
 (define (valida-cartas-limite-jogador jogador limite)
   (cond
-    ;; Se a lista estiver vazia, então devolve um valor vazio
     [(empty? (jogador-cartas jogador)) empty]
-    ;; Se a pontuação da carta
-    [(< (retorna-pontuação-carta (first (jogador-cartas jogador))) limite)
+    [(< (carta-valor (first (jogador-cartas jogador))) limite)
      (cons
-      (make-cartaptlm (first (jogador-cartas jogador)) (retorna-pontuação-carta (first (jogador-cartas jogador))) limite)
-      (valida-cartas-limite-jogador (monta-jogador-resto-cartas jogador) limite))]
-    [else (valida-cartas-limite-jogador (monta-jogador-resto-cartas jogador) limite)]
+      (make-cartaptlm (first (jogador-cartas jogador)) (carta-valor (first (jogador-cartas jogador))) limite)
+      (cartas-pontos-limite (monta-jogador-resto-cartas jogador) limite))]
+    [else (cartas-pontos-limite (monta-jogador-resto-cartas jogador) limite)]
   )
 )
 
