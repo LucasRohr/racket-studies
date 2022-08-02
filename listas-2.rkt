@@ -22,6 +22,12 @@
 ;; c : Carta
 ;; l : PilhaDeCartas
 
+;; 1) =========
+
+;; filtra-copas : PilhaDeCartas -> PilhaDeCartas
+;; Obj : dada uma pilha de cartas, retorna uma pilha contendo apenas as de copas
+;; Ex:
+;; (filtra-copas PILHA_1) = (list (make-carta "copas" 1) (make-carta "copas" 1))
 (define (filtra-copas pilha-cartas)
   (cond
     [(empty? pilha-cartas) empty]
@@ -30,21 +36,22 @@
   )
 )
 
-(filtra-copas PILHA_1)
+(check-expect (filtra-copas PILHA_1) (list (make-carta "copas" 1) (make-carta "copas" 1)))
 
-;; =========
+
+;; 2) =========
 
 (define (filtra-cartas pilha-cartas naipe)
   (cond
     [(empty? pilha-cartas) empty]
-    [(string=? (carta-naipe (first pilha-cartas)) naipe) (cons (first pilha-cartas) (filtra-copas (rest pilha-cartas)))]
-    [else (filtra-copas (rest pilha-cartas))]
+    [(string=? (carta-naipe (first pilha-cartas)) naipe) (cons (first pilha-cartas) (filtra-cartas (rest pilha-cartas) naipe))]
+    [else (filtra-cartas (rest pilha-cartas) naipe)]
   )
 )
 
 (filtra-cartas PILHA_1 "ouros")
 
-;; =========
+;; 3) =========
 
 (define (retorna-numeros-cartas pilha-cartas)
   (cond
@@ -56,7 +63,7 @@
 (retorna-numeros-cartas PILHA_1)
 
 
-;; =========
+;; 4) =========
 
 (define (retorna-soma-ouros pilha-cartas)
   (cond
@@ -67,3 +74,20 @@
 )
 
 (retorna-soma-ouros PILHA_1)
+
+;; 5) =========
+
+(define (substitui-carta carta)
+  (make-carta (carta-naipe carta) (+ (carta-número carta) 1))
+)
+
+(define (substitui-cartas pilha-cartas)
+  (cond
+    [(empty? pilha-cartas) empty]
+    [(or (= (carta-número (first pilha-cartas)) 13) (= (carta-número (first pilha-cartas)) 0))
+    (cons (first pilha-cartas) (substitui-cartas (rest pilha-cartas)))]
+    [else (cons (substitui-carta (first pilha-cartas)) (substitui-cartas (rest pilha-cartas)))]
+  )
+)
+
+(substitui-cartas PILHA_1)
