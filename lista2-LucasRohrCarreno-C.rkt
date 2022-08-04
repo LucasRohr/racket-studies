@@ -1,6 +1,8 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-intermediate-reader.ss" "lang")((modname lista2-LucasRohrCarreno-C) (read-case-sensitive #t) (teachpacks ((lib "image.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #f #t none #t ((lib "image.rkt" "teachpack" "2htdp")) #f)))
+;; Nome: Lucas Rohr Carreño
+
 ;; ========================================================================
 ;;                                 QUESTÃO 1
 ;; Defina o tipo de dado Estado para 8-Puzzle e o tipo de dado ListasDeEstados. Defina três constantes 
@@ -12,7 +14,7 @@
 ;; -----------------
 (define-struct estado (zero um dois tres quatro cinco seis sete oito))  
 ;; Um elemento do conjunto Estado é
-;;   (make-estado zero um dois tres quatro cinco seis sete oito)
+;;   (make-estado zero um dois tres quatro cinco seis sete oito), onde:
 ;;   zero   : Número, tile na pocisão zero.
 ;;   um     : Número, tile na pocisão um.
 ;;   dois   : Número, tile na pocisão dois.
@@ -55,7 +57,7 @@
 ;;    n : Número
 ;;    l : ListaDeNúmeros
 
-;; Definição de constantes do tipo ListaDeNúmeros
+;; Definição de constantes do tipo ListaDeNúmeros:
 
 (define LISTA-MOVE-DIR (cons 0 (cons 1 (cons 3 (cons 4 (cons 6 (cons 7 empty)))))))
 (define LISTA-MOVE-ESQ (cons 1 (cons 2 (cons 4 (cons 5 (cons 7 (cons 8 empty)))))))
@@ -109,13 +111,15 @@
 ;; Objetivo : dada uma ListasDeEstados, retorna um grid de estado um ao lado do outro
 
 ;; Exemplos:
-;; (desenha-lista-estados LISTA-ESTADOS-1) = desenha grids da LISTA-ESTADOS-1 um ao lado do outro
-;; (desenha-lista-estados LISTA-ESTADOS-2) = desenha grids da LISTA-ESTADOS-2 um ao lado do outro
+;; (desenha-lista-estados LISTA-ESTADOS-1) = desenha grids de estados da LISTA-ESTADOS-1 um ao lado do outro
+;; (desenha-lista-estados LISTA-ESTADOS-2) = desenha grids de estados da LISTA-ESTADOS-2 um ao lado do outro
 (define (desenha-lista-estados lista-estados)
   (cond
-    ;; Se a lista lista-estados estiver vazia, então devolver uma imagem vazia
+    ;; Se a lista lista-estados estiver vazia
+    ;; então devolver uma imagem vazia
     [(empty? lista-estados) empty-image]
-    ;; Senão, retorna o desenho do primeiro estado ao lado do desenho do restante dos estados
+    ;; Senão, retornar o desenho do primeiro estado ao lado do desenho do restante dos estados
+    ;; separados por um espaço em branco
     [else (beside
            (desenha-estado (first lista-estados))
            (rectangle 15 0 "outline" "white")
@@ -176,11 +180,13 @@
 ;; (está-em? 0 LISTA-MOVE-ESQ) = #false
 (define (está-em? numero lista-numeros)
   (cond
-    ;; Se a lista lista-numeros estiver vazia, então devolver falso
+    ;; Se a lista lista-numeros estiver vazia,
+    ;; então devolver falso
     [(empty? lista-numeros) #false]
-    ;; Se o primeiro valor da lista for igual ao número informado, retornar true
+    ;; Se o primeiro valor da lista for igual ao número informado,
+    ;; então retornar true
     [(= numero (first lista-numeros)) #true]
-    ;; Senão, retornar número junto com o restante da lista
+    ;; Senão, seguir retornando o restante da lista
     [else (está-em? numero (rest lista-numeros))]))
 
 ;; Testes:
@@ -220,11 +226,13 @@
 ;; (estado-está-em? ESTADO-1 LISTA-ESTADOS-2) = #false
 (define (estado-está-em? estado lista-estados)
   (cond
-    ;; Se a lista lista-estados estiver vazia, então devolver falso
+    ;; Se a lista lista-estados estiver vazia,
+    ;; então devolver falso
     [(empty? lista-estados) #false]
-    ;; Se o primeiro estado for igual ao estado informado, retornar true
+    ;; Se o primeiro estado for igual ao estado informado,
+    ;; então retornar true
     [(estado-é-igual? estado (first lista-estados)) #true]
-    ;; Senão, retornar o estado junto com o restante da lista
+    ;; Senão, seguir retornando o restante da lista
     [else (estado-está-em? estado (rest lista-estados))]))
 
 ;; Testes:
@@ -244,12 +252,12 @@
 ;; --------------------
 
 ;; Um ResultadoTroca: pode ser
-;; 1. vazia (empty) ou
+;; 1. vazio (empty) ou
 ;; 2. Estado
 
 ;; verifica-troca-tile-esq : Estado Número -> ResultadoTroca
 ;; Objetivo : dado um estado e a posição do seu tile blank, retorna vazio se não for possível trocar a tile
-;; ou o novo estado com tile movida caso possível, com posições para esquerda
+;; ou o novo estado com tile movida caso possível, contando movimento da tile blank para esquerda
 
 ;; Exemplos:
 ;; (verifica-troca-tile-esq ESTADO-1 0) = empty
@@ -258,14 +266,15 @@
   (cond
     [(está-em? posicao-blank LISTA-MOVE-ESQ)
      (make-estado
+       ;; Checagem de movimento na primeira fileira
        (cond [(= posicao-blank 1) 0] [else (estado-zero estado)])
        (cond [(= posicao-blank 2) 0] [(= posicao-blank 1) (estado-zero estado)] [else (estado-um estado)])
        (cond [(= posicao-blank 2) (estado-um estado)] [else (estado-dois estado)])
-       
+       ;; Checagem de movimento na segunda fileira
        (cond [(= posicao-blank 4) 0] [else (estado-tres estado)])
        (cond [(= posicao-blank 5) 0] [(= posicao-blank 4) (estado-tres estado)] [else (estado-quatro estado)])
        (cond [(= posicao-blank 5) (estado-quatro estado)] [else (estado-cinco estado)])
-       
+       ;; Checagem de movimento na terceira fileira
        (cond [(= posicao-blank 7) 0] [else (estado-seis estado)])
        (cond [(= posicao-blank 8) 0] [(= posicao-blank 7) (estado-seis estado)] [else (estado-sete estado)])
        (cond [(= posicao-blank 8) (estado-sete estado)] [else (estado-oito estado)])
@@ -282,7 +291,7 @@
 
 ;; verifica-troca-tile-dir : Estado Número -> ResultadoTroca
 ;; Objetivo : dado um estado e a posição do seu tile blank, retorna vazio se não for possível trocar a tile
-;; ou o novo estado com tile movida caso possível, com posições para direita
+;; ou o novo estado com tile movida caso possível, contando movimento da tile blank para direita
 
 ;; Exemplos:
 ;; (verifica-troca-tile-dir ESTADO-1 0) = (make-estado 1 0 2 3 4 5 6 7 8)
@@ -291,14 +300,15 @@
   (cond
     [(está-em? posicao-blank LISTA-MOVE-DIR)
      (make-estado
+       ;; Checagem de movimento na primeira fileira
        (cond [(= posicao-blank 0) (estado-um estado)] [else (estado-zero estado)])
        (cond [(= posicao-blank 1) (estado-dois estado)] [(= posicao-blank 0) 0] [else (estado-um estado)])
        (cond [(= posicao-blank 1) 0] [else (estado-dois estado)])
-
+       ;; Checagem de movimento na segunda fileira
        (cond [(= posicao-blank 3) (estado-quatro estado)] [else (estado-tres estado)])
        (cond [(= posicao-blank 4) (estado-cinco estado)] [(= posicao-blank 3) 0] [else (estado-quatro estado)])
        (cond [(= posicao-blank 4) 0] [else (estado-cinco estado)])
-
+       ;; Checagem de movimento na terceira fileira
        (cond [(= posicao-blank 6) (estado-sete estado)] [else (estado-seis estado)])
        (cond [(= posicao-blank 7) (estado-oito estado)] [(= posicao-blank 6) 0] [else (estado-sete estado)])
        (cond [(= posicao-blank 7) 0] [else (estado-oito estado)])
@@ -315,7 +325,7 @@
 
 ;; verifica-troca-tile-cima : Estado Número -> ResultadoTroca
 ;; Objetivo : dado um estado e a posição do seu tile blank, retorna vazio se não for possível trocar a tile
-;; ou o novo estado com tile movida caso possível, com posições para cima
+;; ou o novo estado com tile movida caso possível, contando movimento da tile blank para cima
 
 ;; Exemplos:
 ;; (verifica-troca-tile-cima ESTADO-1 0) = empty
@@ -324,14 +334,15 @@
   (cond
     [(está-em? posicao-blank LISTA-MOVE-CIMA)
      (make-estado
+       ;; Checagem de movimento na primeira fileira
        (cond [(= posicao-blank 3) 0] [else (estado-zero estado)])
        (cond [(= posicao-blank 4) 0] [else (estado-um estado)])
        (cond [(= posicao-blank 5) 0] [else (estado-dois estado)])
-
+       ;; Checagem de movimento na segunda fileira
        (cond [(= posicao-blank 3) (estado-zero estado)] [(= posicao-blank 6) 0] [else (estado-tres estado)])
        (cond [(= posicao-blank 4) (estado-um estado)] [(= posicao-blank 7) 0] [else (estado-quatro estado)])
        (cond [(= posicao-blank 5) (estado-dois estado)] [(= posicao-blank 8) 0] [else (estado-cinco estado)])
-
+       ;; Checagem de movimento na terceira fileira
        (cond [(= posicao-blank 6) (estado-tres estado)] [else (estado-seis estado)])
        (cond [(= posicao-blank 7) (estado-quatro estado)] [else (estado-sete estado)])
        (cond [(= posicao-blank 8) (estado-cinco estado)] [else (estado-oito estado)])
@@ -348,7 +359,7 @@
 
 ;; verifica-troca-tile-baixo : Estado Número -> ResultadoTroca
 ;; Objetivo : dado um estado e a posição do seu tile blank, retorna vazio se não for possível trocar a tile
-;; ou o novo estado com tile movida caso possível, com posições para baixo
+;; ou o novo estado com tile movida caso possível, contando movimento da tile blank para baixo
 
 ;; Exemplos:
 ;; (verifica-troca-tile-baixo ESTADO-1 0) = (make-estado 3 1 2 0 4 5 6 7 8)
@@ -357,14 +368,15 @@
   (cond
     [(está-em? posicao-blank LISTA-MOVE-BAIXO)
      (make-estado
+       ;; Checagem de movimento na primeira fileira
        (cond [(= posicao-blank 0) (estado-tres estado)] [else (estado-zero estado)])
        (cond [(= posicao-blank 1) (estado-quatro estado)] [else (estado-um estado)])
        (cond [(= posicao-blank 2) (estado-cinco estado)] [else (estado-dois estado)])
-
+       ;; Checagem de movimento na segunda fileira
        (cond [(= posicao-blank 0) 0] [(= posicao-blank 3) (estado-seis estado)] [else (estado-tres estado)])
        (cond [(= posicao-blank 1) 0] [(= posicao-blank 4) (estado-sete estado)] [else (estado-quatro estado)])
        (cond [(= posicao-blank 2) 0] [(= posicao-blank 5) (estado-oito estado)] [else (estado-cinco estado)])
-
+       ;; Checagem de movimento na terceira fileira
        (cond [(= posicao-blank 3) 0] [else (estado-seis estado)])
        (cond [(= posicao-blank 4) 0] [else (estado-sete estado)])
        (cond [(= posicao-blank 5) 0] [else (estado-oito estado)])
@@ -379,26 +391,33 @@
 (check-expect (verifica-troca-tile-baixo ESTADO-1 0) (make-estado 3 1 2 0 4 5 6 7 8))
 (check-expect (verifica-troca-tile-baixo ESTADO-2 4) (make-estado 1 4 2 3 7 5 6 0 8))
 
+;; Definição de constantes de direção
+
+(define ESQUERDA "esq")
+(define DIREITA "dir")
+(define CIMA "cima")
+(define BAIXO "baixo")
+
 ;; verifica-sucessor : Estado String -> ResultadoTroca
 ;; Objetivo : dado um estado e a direção de movimento da tile blank, decide qual auxiliar de troca usar
-;; retornando um resultado de troca conforme direção
+;; verificando e retornando um resultado de troca conforme direção
 
 ;; Exemplos:
-;; (verifica-sucessor ESTADO-1 "esq") = empty
-;; (verifica-sucessor ESTADO-2 "baixo") = (make-estado 1 4 2 3 7 5 6 0 8)
+;; (verifica-sucessor ESTADO-1 ESQUERDA) = empty
+;; (verifica-sucessor ESTADO-2 BAIXO) = (make-estado 1 4 2 3 7 5 6 0 8)
 (define (verifica-sucessor estado direcao)
   (cond
-    [(string=? direcao "esq") (verifica-troca-tile-esq estado (pos-blank estado))]
-    [(string=? direcao "dir") (verifica-troca-tile-dir estado (pos-blank estado))]
-    [(string=? direcao "cima") (verifica-troca-tile-cima estado (pos-blank estado))]
-    [(string=? direcao "baixo") (verifica-troca-tile-baixo estado (pos-blank estado))]
+    [(string=? direcao ESQUERDA) (verifica-troca-tile-esq estado (pos-blank estado))]
+    [(string=? direcao DIREITA) (verifica-troca-tile-dir estado (pos-blank estado))]
+    [(string=? direcao CIMA) (verifica-troca-tile-cima estado (pos-blank estado))]
+    [(string=? direcao BAIXO) (verifica-troca-tile-baixo estado (pos-blank estado))]
   )
 )
 
 ;; Testes:
 
-(check-expect (verifica-sucessor ESTADO-1 "esq") empty)
-(check-expect (verifica-sucessor ESTADO-2 "baixo") (make-estado 1 4 2 3 7 5 6 0 8))
+(check-expect (verifica-sucessor ESTADO-1 ESQUERDA) empty)
+(check-expect (verifica-sucessor ESTADO-2 BAIXO) (make-estado 1 4 2 3 7 5 6 0 8))
 
 ;; gera-lista-tiles : Estado -> ListaDeNúmeros
 ;; Objetivo : dado um estado, retorna seus atributos numéricos em lista
@@ -423,22 +442,84 @@
 (check-expect (gera-lista-tiles ESTADO-1) (list 0 1 2 3 4 5 6 7 8))
 (check-expect (gera-lista-tiles ESTADO-2) (list 1 4 2 3 0 5 6 7 8))
 
-;; gera-sucessores : Estado -> Imagem
-;; Objetivo : dado um estado, desenha uma imagem de seus sucessores lado a lado
+;; retorna-sucessores-nao-vazios : ListasDeEstados -> ListasDeEstados
+;; Objetivo : dada uma ListasDeEstados, sendo estes sucessores, retorna a lista
+;; dos sucessores existentes, não vazios
 
 ;; Exemplos:
-;; (gera-sucessores ESTADO-1) = desenho de sucessores do ESTADO-1 lado a lado
-;; (gera-sucessores ESTADO-2) = desenho de sucessores do ESTADO-2 lado a lado
+;; (retorna-sucessores-nao-vazios (list '() (make-estado 3 1 2 0 4 5 6 7 8) '() (make-estado 1 0 2 3 4 5 6 7 8))) =
+;;  (list (make-estado 3 1 2 0 4 5 6 7 8) (make-estado 1 0 2 3 4 5 6 7 8))
+;; (retorna-sucessores-nao-vazios
+;;  (list
+;;    (make-estado 1 4 2 0 3 5 6 7 8)
+;;    (make-estado 1 4 2 3 7 5 6 0 8)
+;;    (make-estado 1 4 2 3 5 0 6 7 8)
+;;    (make-estado 1 0 2 3 4 5 6 7 8))) =
+;; (list
+;;   (make-estado 1 4 2 0 3 5 6 7 8)
+;;   (make-estado 1 4 2 3 7 5 6 0 8)
+;;   (make-estado 1 4 2 3 5 0 6 7 8)
+;;   (make-estado 1 0 2 3 4 5 6 7 8))
+(define (retorna-sucessores-nao-vazios lista-sucessores)
+  (cond
+    ;; Se a lista lista-sucessores estiver vazia,
+    ;; então retornar vazio
+    [(empty? lista-sucessores) empty]
+    ;; Se o primeiro sucessor da lista não for vazio,
+    ;; então retornar ele montado em uma lista junto do resto dos sucessores não vazios
+    [(not (empty? (first lista-sucessores))) (cons (first lista-sucessores) (retorna-sucessores-nao-vazios (rest lista-sucessores)))]
+    ;; Senão, seguir retornando o resto da lista
+    [else (retorna-sucessores-nao-vazios (rest lista-sucessores))]
+  )
+)
+
+;; Testes:
+
+(check-expect (retorna-sucessores-nao-vazios (list '() (make-estado 3 1 2 0 4 5 6 7 8) '() (make-estado 1 0 2 3 4 5 6 7 8)))
+              (list (make-estado 3 1 2 0 4 5 6 7 8) (make-estado 1 0 2 3 4 5 6 7 8)))
+(check-expect (retorna-sucessores-nao-vazios
+               (list (make-estado 1 4 2 0 3 5 6 7 8)
+                     (make-estado 1 4 2 3 7 5 6 0 8)
+                     (make-estado 1 4 2 3 5 0 6 7 8)
+                     (make-estado 1 0 2 3 4 5 6 7 8)))
+              (list (make-estado 1 4 2 0 3 5 6 7 8)
+                    (make-estado 1 4 2 3 7 5 6 0 8)
+                    (make-estado 1 4 2 3 5 0 6 7 8)
+                    (make-estado 1 0 2 3 4 5 6 7 8)))
+
+;; gera-sucessores : Estado -> ListasDeEstados
+;; Objetivo : dado um estado, retorna sua lista de sucessores possíveis
+;; usando verifica-sucessor com diferentes direções de movimento do tile blank, além de
+;; retorna-sucessores-nao-vazios como auxiliar
+
+;; Exemplos:
+;; (gera-sucessores ESTADO-1) = (list (make-estado 3 1 2 0 4 5 6 7 8) (make-estado 1 0 2 3 4 5 6 7 8))
+;; (gera-sucessores ESTADO-2) =
+;; (list
+;;   (make-estado 1 4 2 0 3 5 6 7 8)
+;;   (make-estado 1 4 2 3 7 5 6 0 8)
+;;   (make-estado 1 4 2 3 5 0 6 7 8)
+;;   (make-estado 1 0 2 3 4 5 6 7 8))
 (define (gera-sucessores estado)
   (cond
-    ;; Se o estado não possui um tile blank, retorna uma imagem vazia
-    [(not (está-em? 0 (gera-lista-tiles estado))) empty-image]
-    ;; Senão, verifica os sucessores do estado para cada direção de movimento do tile blank
-    [else (desenha-lista-estados
-           (cons (verifica-sucessor estado "esq")
-                 (cons (verifica-sucessor estado "baixo")
-                 (cons (verifica-sucessor estado "dir")
-                 (cons (verifica-sucessor estado "cima") empty)))))]))
+    ;; Se o estado não possui um tile blank,
+    ;; então retornar vazio
+    [(not (está-em? 0 (gera-lista-tiles estado))) empty]
+    ;; Senão, verificar os sucessores do estado para cada direção de movimento do tile blank
+    ;; e retornar apenas os não vazios (sucessores existentes)
+    [else (retorna-sucessores-nao-vazios
+           (cons (verifica-sucessor estado ESQUERDA)
+                 (cons (verifica-sucessor estado BAIXO)
+                       (cons (verifica-sucessor estado DIREITA)
+                             (cons (verifica-sucessor estado CIMA) empty)))))]))
+
+;; Testes:
+
+(check-expect (gera-sucessores ESTADO-1) (list (make-estado 3 1 2 0 4 5 6 7 8) (make-estado 1 0 2 3 4 5 6 7 8)))
+(check-expect (gera-sucessores ESTADO-2) (list (make-estado 1 4 2 0 3 5 6 7 8)
+                                               (make-estado 1 4 2 3 7 5 6 0 8)
+                                               (make-estado 1 4 2 3 5 0 6 7 8)
+                                               (make-estado 1 0 2 3 4 5 6 7 8)))
 
 ;; ========================================================================
 ;;                                 QUESTÃO 6
@@ -449,7 +530,7 @@
 
 ;; retorna-sucessores-lista-estados : ListasDeEstados -> ListasDeEstados
 ;; Objetivo : dado uma ListasDeEstados, retorna uma nova ListasDeEstados montada recursivamente
-;; contento os sucessores de cada estado iterado na lista
+;; contendo os sucessores de cada estado iterado na lista
 
 ;; Exemplos:
 ;; (retorna-sucessores-lista-estados LISTA-ESTADOS-1) =
@@ -476,18 +557,22 @@
 
 (define (retorna-sucessores-lista-estados lista-estados)
   (cond
-    ;; Se a lista-estados estiver vazia, retorna vazio
+    ;; Se a lista-estados estiver vazia,
+    ;; então retornar vazio
     [(empty? lista-estados) empty]
-    ;; Se o primeiro estado da lista não for vazio, verifica e retorna seus sucessores
-    ;; e monta em uma lista juntamente com os sucessores do restante da lista de estados
+    ;; Se o primeiro estado da lista não for vazio,
+    ;; então verificar e retornar seus sucessores e montar em uma
+    ;; lista juntamente com os sucessores do restante da lista de estados
     [(not (empty? (first lista-estados)))
-     (cons (verifica-sucessor (first lista-estados) "esq")
-           (cons (verifica-sucessor (first lista-estados) "baixo")
-           (cons (verifica-sucessor (first lista-estados) "dir")
-           (cons (verifica-sucessor (first lista-estados) "cima")
+     (cons (verifica-sucessor (first lista-estados) ESQUERDA)
+           (cons (verifica-sucessor (first lista-estados) BAIXO)
+           (cons (verifica-sucessor (first lista-estados) DIREITA)
+           (cons (verifica-sucessor (first lista-estados) CIMA)
            (retorna-sucessores-lista-estados (rest lista-estados))))))]
-    ;; Senão, retorna a lista de sucessores do resto dos estados
+    ;; Senão, retornar a lista de sucessores do resto dos estados
     [else (retorna-sucessores-lista-estados (rest lista-estados))]))
+
+;; Testes:
 
 (check-expect (retorna-sucessores-lista-estados LISTA-ESTADOS-1)
               (list
@@ -537,14 +622,17 @@
 
 (define (retorna-sucessores-estados-nao-vazios lista-estados)
   (cond
-    ;; Se a lista-estados estiver vazia, retorna vazio
+    ;; Se a lista-estados estiver vazia,
+    ;; então retornar vazio
     [(empty? lista-estados) empty]
-    ;; Se o primeiro elemento da lista não for vazio, retorna ele montado junto da lista do resto
-    ;; de elementos não vazios
+    ;; Se o primeiro elemento da lista não for vazio,
+    ;; então retornar ele montado junto da lista do resto de elementos não vazios
     [(not (empty? (first lista-estados)))
      (cons (first lista-estados) (retorna-sucessores-estados-nao-vazios (rest lista-estados)))]
-    ;; Senão, retorna o resto dos elementos não vazios
+    ;; Senão, retornar o resto dos elementos não vazios
     [else (retorna-sucessores-estados-nao-vazios (rest lista-estados))]))
+
+;; Testes:
 
 (check-expect (retorna-sucessores-estados-nao-vazios (retorna-sucessores-lista-estados LISTA-ESTADOS-1))
               (list
@@ -592,6 +680,8 @@
 (define (gera-sucessores-lista-repetidos lista-estados)
   (retorna-sucessores-estados-nao-vazios (retorna-sucessores-lista-estados lista-estados)))
 
+;; Testes:
+
 (check-expect (gera-sucessores-lista-repetidos LISTA-ESTADOS-1)
               (list
                (make-estado 3 1 2 0 4 5 6 7 8)
@@ -617,7 +707,7 @@
 ;; como auxiliar na chamada para remover os sucessores repetidos
 
 ;; Exemplos:
-;; (gera-sucessores-lista LISTA-ESTADOS-1) =
+;; (gera-sucessores-lista (gera-sucessores-lista-repetidos LISTA-ESTADOS-1)) =
 ;; (list
 ;;  (make-estado 3 1 2 0 4 5 6 7 8)
 ;;  (make-estado 1 4 2 0 3 5 6 7 8)
@@ -625,7 +715,7 @@
 ;;  (make-estado 1 4 2 3 5 0 6 7 8)
 ;;  (make-estado 1 0 2 3 4 5 6 7 8))
 
-;; (gera-sucessores-lista LISTA-ESTADOS-2) =
+;; (gera-sucessores-lista (gera-sucessores-lista-repetidos LISTA-ESTADOS-2)) =
 ;; (list
 ;;  (make-estado 4 5 8 1 1 2 7 0 1)
 ;;  (make-estado 4 5 8 0 1 2 1 7 1)
@@ -644,6 +734,8 @@
      (cons (first lista-estados) (gera-sucessores-lista (rest lista-estados)))]
     ;; Senão, retornar o restante da lista
     [else (gera-sucessores-lista (rest lista-estados))]))
+
+;; Testes:
 
 (check-expect (gera-sucessores-lista (gera-sucessores-lista-repetidos LISTA-ESTADOS-1))
               (list
@@ -671,4 +763,3 @@
 ;; ========================================================================
 
 ;; conta-estados-alc : ...
-;; ...
