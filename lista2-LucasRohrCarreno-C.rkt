@@ -15,15 +15,15 @@
 (define-struct estado (zero um dois tres quatro cinco seis sete oito))  
 ;; Um elemento do conjunto Estado é
 ;;   (make-estado zero um dois tres quatro cinco seis sete oito), onde:
-;;   zero   : Número, tile na pocisão zero.
-;;   um     : Número, tile na pocisão um.
-;;   dois   : Número, tile na pocisão dois.
-;;   tres   : Número, tile na pocisão tres.
-;;   quatro : Número, tile na pocisão quatro.
-;;   cinco  : Número, tile na pocisão cinco.
-;;   seis   : Número, tile na pocisão seis.
-;;   sete   : Número, tile na pocisão sete.
-;;   oito   : Número, tile na pocisão oito.
+;;   zero   : Número, tile na posição zero.
+;;   um     : Número, tile na posição um.
+;;   dois   : Número, tile na posição dois.
+;;   tres   : Número, tile na posição tres.
+;;   quatro : Número, tile na posição quatro.
+;;   cinco  : Número, tile na posição cinco.
+;;   seis   : Número, tile na posição seis.
+;;   sete   : Número, tile na posição sete.
+;;   oito   : Número, tile na posição oito.
 
 
 ;; Definição de constantes do tipo Estado:
@@ -700,14 +700,14 @@
                (make-estado 1 4 2 3 5 0 6 7 8)
                (make-estado 1 0 2 3 4 5 6 7 8)))
 
-;; gera-sucessores-lista : ListasDeEstados -> ListasDeEstados
+;; gera-sucessores-lista-sem-repetidos : ListasDeEstados -> ListasDeEstados
 ;; Objetivo : dada uma ListasDeEstados, deve devolver uma ListasDeEstados contendo os
 ;; sucessores possíveis de serem gerados com um movimento do blank de cada estado,
 ;; sem contar sucessores repetidos. A função utiliza a função gera-sucessores-lista-repetidos
-;; como auxiliar na chamada para remover os sucessores repetidos
+;; como auxiliar na chamada para remover os sucessores repetidos que foram gerados
 
 ;; Exemplos:
-;; (gera-sucessores-lista (gera-sucessores-lista-repetidos LISTA-ESTADOS-1)) =
+;; (gera-sucessores-lista-sem-repetidos (gera-sucessores-lista-repetidos LISTA-ESTADOS-1)) =
 ;; (list
 ;;  (make-estado 3 1 2 0 4 5 6 7 8)
 ;;  (make-estado 1 4 2 0 3 5 6 7 8)
@@ -715,7 +715,61 @@
 ;;  (make-estado 1 4 2 3 5 0 6 7 8)
 ;;  (make-estado 1 0 2 3 4 5 6 7 8))
 
-;; (gera-sucessores-lista (gera-sucessores-lista-repetidos LISTA-ESTADOS-2)) =
+;; (gera-sucessores-lista-sem-repetidos (gera-sucessores-lista-repetidos LISTA-ESTADOS-2)) =
+;; (list
+;;  (make-estado 4 5 8 1 1 2 7 0 1)
+;;  (make-estado 4 5 8 0 1 2 1 7 1)
+;;  (make-estado 1 4 2 0 3 5 6 7 8)
+;;  (make-estado 1 4 2 3 7 5 6 0 8)
+;;  (make-estado 1 4 2 3 5 0 6 7 8)
+;;  (make-estado 1 0 2 3 4 5 6 7 8))
+
+(define (gera-sucessores-lista-sem-repetidos lista-estados)
+  (cond
+    ;; Se a lista lista-estados estiver vazia, então devolver vazio
+    [(empty? lista-estados) empty]
+    ;; Se o primeiro elemento da lista não se encontra no restante dela,
+    ;; então retornar o mesmo e montar junto do resto da lista
+    [(not (estado-está-em? (first lista-estados) (rest lista-estados)))
+     (cons (first lista-estados) (gera-sucessores-lista-sem-repetidos (rest lista-estados)))]
+    ;; Senão, retornar o restante da lista
+    [else (gera-sucessores-lista-sem-repetidos (rest lista-estados))]))
+
+;; Testes:
+
+(check-expect (gera-sucessores-lista-sem-repetidos (gera-sucessores-lista-repetidos LISTA-ESTADOS-1))
+              (list
+               (make-estado 3 1 2 0 4 5 6 7 8)
+               (make-estado 1 4 2 0 3 5 6 7 8)
+               (make-estado 1 4 2 3 7 5 6 0 8)
+               (make-estado 1 4 2 3 5 0 6 7 8)
+               (make-estado 1 0 2 3 4 5 6 7 8)))
+
+(check-expect (gera-sucessores-lista-sem-repetidos (gera-sucessores-lista-repetidos LISTA-ESTADOS-2))
+              (list
+               (make-estado 4 5 8 1 1 2 7 0 1)
+               (make-estado 4 5 8 0 1 2 1 7 1)
+               (make-estado 1 4 2 0 3 5 6 7 8)
+               (make-estado 1 4 2 3 7 5 6 0 8)
+               (make-estado 1 4 2 3 5 0 6 7 8)
+               (make-estado 1 0 2 3 4 5 6 7 8)))
+
+;; gera-sucessores-lista : ListasDeEstados -> ListasDeEstados
+;; Objetivo : dada uma ListasDeEstados, deve devolver uma ListasDeEstados contendo os
+;; sucessores possíveis de serem gerados com um movimento do blank de cada estado,
+;; sem contar sucessores repetidos. A função utiliza a função gera-sucessores-lista-repetidos e
+;; gera-sucessores-lista-sem-repetidos como auxiliares para remover os sucessores repetidos
+
+;; Exemplos:
+;; (gera-sucessores-lista LISTA-ESTADOS-1) =
+;; (list
+;;  (make-estado 3 1 2 0 4 5 6 7 8)
+;;  (make-estado 1 4 2 0 3 5 6 7 8)
+;;  (make-estado 1 4 2 3 7 5 6 0 8)
+;;  (make-estado 1 4 2 3 5 0 6 7 8)
+;;  (make-estado 1 0 2 3 4 5 6 7 8))
+
+;; (gera-sucessores-lista LISTA-ESTADOS-2) =
 ;; (list
 ;;  (make-estado 4 5 8 1 1 2 7 0 1)
 ;;  (make-estado 4 5 8 0 1 2 1 7 1)
@@ -725,19 +779,11 @@
 ;;  (make-estado 1 0 2 3 4 5 6 7 8))
 
 (define (gera-sucessores-lista lista-estados)
-  (cond
-    ;; Se a lista lista-estados estiver vazia, então devolver vazio
-    [(empty? lista-estados) empty]
-    ;; Se o primeiro elemento da lista não se encontra no restante dela,
-    ;; então retornar o mesmo e montar junto do resto da lista
-    [(not (estado-está-em? (first lista-estados) (rest lista-estados)))
-     (cons (first lista-estados) (gera-sucessores-lista (rest lista-estados)))]
-    ;; Senão, retornar o restante da lista
-    [else (gera-sucessores-lista (rest lista-estados))]))
+  (gera-sucessores-lista-sem-repetidos (gera-sucessores-lista-repetidos lista-estados)))
 
 ;; Testes:
 
-(check-expect (gera-sucessores-lista (gera-sucessores-lista-repetidos LISTA-ESTADOS-1))
+(check-expect (gera-sucessores-lista LISTA-ESTADOS-1)
               (list
                (make-estado 3 1 2 0 4 5 6 7 8)
                (make-estado 1 4 2 0 3 5 6 7 8)
@@ -745,7 +791,7 @@
                (make-estado 1 4 2 3 5 0 6 7 8)
                (make-estado 1 0 2 3 4 5 6 7 8)))
 
-(check-expect (gera-sucessores-lista (gera-sucessores-lista-repetidos LISTA-ESTADOS-2))
+(check-expect (gera-sucessores-lista LISTA-ESTADOS-2)
               (list
                (make-estado 4 5 8 1 1 2 7 0 1)
                (make-estado 4 5 8 0 1 2 1 7 1)
