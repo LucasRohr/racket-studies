@@ -125,6 +125,8 @@
            (rectangle 15 0 "outline" "white")
            (desenha-lista-estados (rest lista-estados)))]))
 
+(desenha-lista-estados LISTA-ESTADOS-1)
+
 ;; ========================================================================
 ;;                                 QUESTÃO 3
 ;; Desenvolva a função pos-blank que, dado um dado um estado, devolve o número da posição do tile blank
