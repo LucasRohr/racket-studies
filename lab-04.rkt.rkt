@@ -1,6 +1,6 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
-#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname lab4-2022-1-template) (read-case-sensitive #t) (teachpacks ((lib "draw.rkt" "teachpack" "htdp") (lib "image.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ((lib "draw.rkt" "teachpack" "htdp") (lib "image.rkt" "teachpack" "2htdp")) #f)))
+#reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname lab-04.rkt) (read-case-sensitive #t) (teachpacks ((lib "draw.rkt" "teachpack" "htdp") (lib "image.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ((lib "draw.rkt" "teachpack" "htdp") (lib "image.rkt" "teachpack" "2htdp")) #f)))
 ;; ==========================================================
 ;; DEFINIÇÕES DE DADOS:
 ;; ==========================================================
@@ -155,6 +155,24 @@
 ;; =========================================
 ;; Construa a função gera-imagem-pagina, que gera uma imagem para uma página web, mostrando seu conteúdo de forma estruturada, indicando o nome da página bem como seu conteúdo.
 
+(define (desenha-delimitador direcao-seta)
+  (overlay
+   (text
+    (cond
+      [(string=? direcao-seta "esq") "<"]
+      [else ">"])
+    13 "white")
+   (rectangle 15 30 "solid" "black")))
+
+(define (desenha-pagina-delimitada pagina imagem-conteudo-pagina)
+  (above/align
+   "left"
+   (text (pag-web-nome pagina) 16 "blue")
+   (beside
+    (desenha-delimitador "esq")
+    imagem-conteudo-pagina
+    (desenha-delimitador "dir"))))
+
 (define (mostra-conteudo-pagina lista-conteudo)
   (cond
     [(empty? lista-conteudo) empty-image]
@@ -175,7 +193,9 @@
 (define (gera-imagem-pagina pagina)
   (cond
     [(pag-web? (first (pag-web-conteudo pagina)))
-     (beside (mostra-conteudo-pagina (pag-web-conteudo (first (pag-web-conteudo pagina)))) (gera-imagem-pagina (make-pag-web (pag-web-nome pagina) (rest (pag-web-conteudo pagina)))))]
-    [else (mostra-conteudo-pagina (pag-web-conteudo pagina))]))
+     (beside
+      (desenha-pagina-delimitada pagina (mostra-conteudo-pagina (pag-web-conteudo (first (pag-web-conteudo pagina)))))
+      (gera-imagem-pagina (make-pag-web (pag-web-nome pagina) (rest (pag-web-conteudo pagina)))))]
+    [else (desenha-pagina-delimitada pagina (mostra-conteudo-pagina (pag-web-conteudo pagina)))]))
 
 (gera-imagem-pagina PAG3)
