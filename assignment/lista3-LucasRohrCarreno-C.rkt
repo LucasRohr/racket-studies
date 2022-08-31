@@ -1,6 +1,8 @@
 ;; The first three lines of this file were inserted by DrRacket. They record metadata
 ;; about the language level of this file in a form that our tools can easily process.
 #reader(lib "htdp-intermediate-lambda-reader.ss" "lang")((modname lista3-LucasRohrCarreno-C) (read-case-sensitive #t) (teachpacks ((lib "draw.rkt" "teachpack" "htdp") (lib "image.rkt" "teachpack" "2htdp"))) (htdp-settings #(#t constructor repeating-decimal #f #t none #f ((lib "draw.rkt" "teachpack" "htdp") (lib "image.rkt" "teachpack" "2htdp")) #f)))
+;; Nome: Lucas Rohr Carreño
+
 ;; ==========================================================
 ;; DEFINIÇÕES DE DADOS:
 ;; ==========================================================
@@ -305,7 +307,7 @@
 ;; =========================================
 
 ;; retorna-valor-soma-tile-objetivo : Número Número Número -> Número
-;; Objetivo : dado um valor de tile, posição da tila no estado e a posição blank no estado
+;; Objetivo : dado um valor de tile, posição da tile no estado e a posição blank no estado,
 ;; retorna uma unidade para soma heurística caso a tile não seja o valor objetivo ou blank
 
 ;; Exemplos:
@@ -347,7 +349,7 @@
 
 ;; cria-nodo : Estado Número -> Nodo
 ;; Objetivo : dado um estado e um valor G, cria um nodo com o estado e valor G, chamando
-;; função-heurística para valor H e uma lista vazia de nodos
+;; função-heurística para valor H, com uma lista vazia de nodos no nodo
 
 ;; Exemplos:
 ;; (cria-nodo ESTADO-1 5) = NODO-1
@@ -365,8 +367,8 @@
 ;; =========================================
 
 ;; retorna-nodos-sucessores : ListaDeEstados Número -> ListaDeNodos
-;; Objetivo : dado um estado e um valor G, cria um nodo com o estado e valor G, chamando
-;; função-heurística para valor H e uma lista vazia de nodos
+;; Objetivo : dada uma lista de estados e um valor G, retorna uma lista de nodos com o estado
+;; de cada um sendo um dos estados da lista de estados, sendo estes sucessores do estado de um nodo
 
 ;; Exemplos:
 ;; (retorna-nodos-sucessores (list (make-estado 3 1 2 0 4 5 6 7 8) (make-nodo (make-estado 1 0 2 3 4 5 6 7 8)) 5) =
@@ -380,7 +382,10 @@
 ;;   (make-nodo (make-estado 1 0 2 3 4 5 6 7 8) 1 8 '()))
 (define (retorna-nodos-sucessores estados-sucessores valor-g-nodo)
   (cond
+    ;; Se a lista de estados sucessores estiver vazia, retornar vazio
     [(empty? estados-sucessores) empty]
+    ;; Senão, retornar um nodo sucessor com o primeiro estado sucessor como estado e valor G + 1
+    ;; juntamente do restante da lista de nodos sucessores
     [else (cons (cria-nodo (first estados-sucessores) (+ valor-g-nodo 1))
                 (retorna-nodos-sucessores (rest estados-sucessores) valor-g-nodo))]))
 
@@ -419,17 +424,20 @@
 ;; =========================================
 
 ;; desenha-info-nodo : Nodo -> Imagem
-;; Objetivo : dado um nodo, retorna seu estado desenhado, junto do valor g, h e f (sendo este f + g)
+;; Objetivo : dado um nodo, retorna seu estado desenhado, junto do valor g, h e f (sendo este g + h)
 
 ;; Exemplos:
 ;; (desenha-info-nodo NODO-1) = desenha estado e valores do nodo 1
 ;; (desenha-info-nodo NODO-2) = desenha estado e valores do nodo 2
 (define (desenha-info-nodo nodo)
-  (above
-   (desenha-estado (nodo-estado nodo))
-   (text (string-append "valor-h:" (number->string (nodo-valor-h nodo))) 15 "black")
-   (text (string-append "valor-g:" (number->string (nodo-valor-g nodo))) 15 "black")
-   (text (string-append "valor-f:" (number->string (+ (nodo-valor-h nodo) (nodo-valor-g nodo)))) 15 "black")))
+  (cond
+    [(empty? nodo) empty-image]
+    [else
+     (above
+      (desenha-estado (nodo-estado nodo))
+      (text (string-append "valor-h:" (number->string (nodo-valor-h nodo))) 15 "black")
+      (text (string-append "valor-g:" (number->string (nodo-valor-g nodo))) 15 "black")
+      (text (string-append "valor-f:" (number->string (+ (nodo-valor-h nodo) (nodo-valor-g nodo)))) 15 "black"))]))
 
 ;; desenha-nodos-sucessores : ListaDeNodos -> Imagem
 ;; Objetivo : dado uma lista de nodos sucessores, retorna o primeiro nodo sucessor, com seus respectivos sucessores,
@@ -440,7 +448,10 @@
 ;; (desenha-nodos-sucessores NODO-2) = desenha nodos sucessores do nodo 2
 (define (desenha-nodos-sucessores nodos-sucessores)
   (cond
+    ;; Se a lista de nodos sucessores estiver vazia, retornar vazio
     [(empty? nodos-sucessores) empty-image]
+    ;; Senão, retornar o desenho do primeiro nodo sucessor junto de sua própria árvore de sucessores,
+    ;; ao lado dos desenhos dos outros nodos sucessores e suas árvores
     [else
      (beside
       (desenha-nodo (first nodos-sucessores))
@@ -455,10 +466,15 @@
 ;; (desenha-nodo NODO-2) = desenha árvore do nodo 2
 ;; (desenha-nodo NODO-2-EXPANDIDO) = desenha árvore do nodo 2 expandido
 (define (desenha-nodo nodo)
-  (above
-   (desenha-info-nodo nodo)
-   (rectangle 30 30 "solid" "white")
-   (desenha-nodos-sucessores (nodo-ls-nodos nodo))))
+  (cond
+    ;; Se o nodo for vazio, retornar uma imagem vazia
+    [(empty? nodo) empty-image]
+    ;; Senão, retornar a info do nodo junto das de seus sucessores da árvore
+    [else
+     (above
+      (desenha-info-nodo nodo)
+      (rectangle 30 30 "solid" "white")
+      (desenha-nodos-sucessores (nodo-ls-nodos nodo)))]))
 
 (desenha-nodo NODO-2)
 (desenha-nodo NODO-2-EXPANDIDO)
@@ -467,27 +483,442 @@
 ;; 44444444444444444444444444444444444444444
 ;; =========================================
 
-(define (gera-arvore-sucessores nodos-sucessores numero-k)
-  (cond
-    [(empty? nodos-sucessores) empty]
-    [else (gera-árvore (expande-nodo (first nodos-sucessores)) numero-k)]))
+;; Definições de constantes para testes:
 
+(define ARVORE-NODO-2-G2
+  (make-nodo
+   (make-estado 1 4 2 3 0 5 6 7 8)
+   2
+   0
+   (list
+    (make-nodo
+     (make-estado 1 4 2 0 3 5 6 7 8)
+     3
+     1
+     (list
+      (make-nodo (make-estado 1 4 2 6 3 5 0 7 8) 4 2 (list '() '()))
+      (make-nodo (make-estado 1 4 2 3 0 5 6 7 8) 2 2 (list '() '() '() '()))
+      (make-nodo (make-estado 0 4 2 1 3 5 6 7 8) 3 2 (list '() '()))))
+    (make-nodo
+     (make-estado 1 4 2 3 7 5 6 0 8)
+     3
+     1
+     (list
+      (make-nodo (make-estado 1 4 2 3 7 5 0 6 8) 4 2 (list '() '()))
+      (make-nodo (make-estado 1 4 2 3 7 5 6 8 0) 4 2 (list '() '()))
+      (make-nodo (make-estado 1 4 2 3 0 5 6 7 8) 2 2 (list '() '() '() '()))))
+    (make-nodo
+     (make-estado 1 4 2 3 5 0 6 7 8)
+     3
+     1
+     (list
+      (make-nodo (make-estado 1 4 2 3 0 5 6 7 8) 2 2 (list '() '() '() '()))
+      (make-nodo (make-estado 1 4 2 3 5 8 6 7 0) 4 2 (list '() '()))
+      (make-nodo (make-estado 1 4 0 3 5 2 6 7 8) 4 2 (list '() '()))))
+    (make-nodo
+     (make-estado 1 0 2 3 4 5 6 7 8)
+     1
+     1
+     (list
+      (make-nodo (make-estado 0 1 2 3 4 5 6 7 8) 0 2 (list '() '()))
+      (make-nodo (make-estado 1 4 2 3 0 5 6 7 8) 2 2 (list '() '() '() '()))
+      (make-nodo (make-estado 1 2 0 3 4 5 6 7 8) 2 2 (list '() '())))))))
+
+(define ARVORE-NODO-1-G3 '())
+
+(define LISTA-NODOS-GERA-ARVORE-SUCESSORES-TESTE-1
+  (list
+ '()
+ (make-nodo
+  (make-estado 1 4 2 3 0 5 6 7 8)
+  2
+  0
+  (list
+   (make-nodo
+    (make-estado 1 4 2 0 3 5 6 7 8)
+    3
+    1
+    (list
+     (make-nodo
+      (make-estado 1 4 2 6 3 5 0 7 8)
+      4
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 6 3 5 7 0 8)
+        5
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 0 3 5 6 7 8)
+        3
+        3
+        (list '() '() '()))))
+     (make-nodo
+      (make-estado 1 4 2 3 0 5 6 7 8)
+      2
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 0 3 5 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 7 5 6 0 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 5 0 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 0 2 3 4 5 6 7 8)
+        1
+        3
+        (list '() '() '()))))
+     (make-nodo
+      (make-estado 0 4 2 1 3 5 6 7 8)
+      3
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 0 3 5 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 4 0 2 1 3 5 6 7 8)
+        3
+        3
+        (list '() '() '()))))))
+   (make-nodo
+    (make-estado 1 4 2 3 7 5 6 0 8)
+    3
+    1
+    (list
+     (make-nodo
+      (make-estado 1 4 2 3 7 5 0 6 8)
+      4
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 3 7 5 6 0 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 0 7 5 3 6 8)
+        5
+        3
+        (list '() '() '()))))
+     (make-nodo
+      (make-estado 1 4 2 3 7 5 6 8 0)
+      4
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 3 7 5 6 0 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 7 0 6 8 5)
+        5
+        3
+        (list '() '() '()))))
+     (make-nodo
+      (make-estado 1 4 2 3 0 5 6 7 8)
+      2
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 0 3 5 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 7 5 6 0 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 5 0 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 0 2 3 4 5 6 7 8)
+        1
+        3
+        (list '() '() '()))))))
+   (make-nodo
+    (make-estado 1 4 2 3 5 0 6 7 8)
+    3
+    1
+    (list
+     (make-nodo
+      (make-estado 1 4 2 3 0 5 6 7 8)
+      2
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 0 3 5 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 7 5 6 0 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 5 0 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 0 2 3 4 5 6 7 8)
+        1
+        3
+        (list '() '() '()))))
+     (make-nodo
+      (make-estado 1 4 2 3 5 8 6 7 0)
+      4
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 3 5 8 6 0 7)
+        5
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 5 0 6 7 8)
+        3
+        3
+        (list '() '() '()))))
+     (make-nodo
+      (make-estado 1 4 0 3 5 2 6 7 8)
+      4
+      2
+      (list
+       (make-nodo
+        (make-estado 1 0 4 3 5 2 6 7 8)
+        4
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 5 0 6 7 8)
+        3
+        3
+        (list '() '() '()))))))
+   (make-nodo
+    (make-estado 1 0 2 3 4 5 6 7 8)
+    1
+    1
+    (list
+     (make-nodo
+      (make-estado 0 1 2 3 4 5 6 7 8)
+      0
+      2
+      (list
+       (make-nodo
+        (make-estado 3 1 2 0 4 5 6 7 8)
+        1
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 0 2 3 4 5 6 7 8)
+        1
+        3
+        (list '() '() '()))))
+     (make-nodo
+      (make-estado 1 4 2 3 0 5 6 7 8)
+      2
+      2
+      (list
+       (make-nodo
+        (make-estado 1 4 2 0 3 5 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 7 5 6 0 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 4 2 3 5 0 6 7 8)
+        3
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 0 2 3 4 5 6 7 8)
+        1
+        3
+        (list '() '() '()))))
+     (make-nodo
+      (make-estado 1 2 0 3 4 5 6 7 8)
+      2
+      2
+      (list
+       (make-nodo
+        (make-estado 1 0 2 3 4 5 6 7 8)
+        1
+        3
+        (list '() '() '()))
+       (make-nodo
+        (make-estado 1 2 5 3 4 0 6 7 8)
+        3
+        3
+        (list '() '() '()))))))))))
+
+(define LISTA-NODOS-GERA-ARVORE-SUCESSORES-TESTE-2
+  (list
+ (make-nodo
+  (make-estado 1 4 2 3 0 5 6 7 8)
+  2
+  0
+  (list
+   (make-nodo
+    (make-estado 1 4 2 0 3 5 6 7 8)
+    3
+    1
+    (list
+     (make-nodo
+      (make-estado 1 4 2 6 3 5 0 7 8)
+      4
+      2
+      (list '() '()))
+     (make-nodo
+      (make-estado 1 4 2 3 0 5 6 7 8)
+      2
+      2
+      (list '() '() '() '()))
+     (make-nodo
+      (make-estado 0 4 2 1 3 5 6 7 8)
+      3
+      2
+      (list '() '()))))
+   (make-nodo
+    (make-estado 1 4 2 3 7 5 6 0 8)
+    3
+    1
+    (list
+     (make-nodo
+      (make-estado 1 4 2 3 7 5 0 6 8)
+      4
+      2
+      (list '() '()))
+     (make-nodo
+      (make-estado 1 4 2 3 7 5 6 8 0)
+      4
+      2
+      (list '() '()))
+     (make-nodo
+      (make-estado 1 4 2 3 0 5 6 7 8)
+      2
+      2
+      (list '() '() '() '()))))
+   (make-nodo
+    (make-estado 1 4 2 3 5 0 6 7 8)
+    3
+    1
+    (list
+     (make-nodo
+      (make-estado 1 4 2 3 0 5 6 7 8)
+      2
+      2
+      (list '() '() '() '()))
+     (make-nodo
+      (make-estado 1 4 2 3 5 8 6 7 0)
+      4
+      2
+      (list '() '()))
+     (make-nodo
+      (make-estado 1 4 0 3 5 2 6 7 8)
+      4
+      2
+      (list '() '()))))
+   (make-nodo
+    (make-estado 1 0 2 3 4 5 6 7 8)
+    1
+    1
+    (list
+     (make-nodo
+      (make-estado 0 1 2 3 4 5 6 7 8)
+      0
+      2
+      (list '() '()))
+     (make-nodo
+      (make-estado 1 4 2 3 0 5 6 7 8)
+      2
+      2
+      (list '() '() '() '()))
+     (make-nodo
+      (make-estado 1 2 0 3 4 5 6 7 8)
+      2
+      2
+      (list '() '()))))))))
+
+;; gera-árvore-sucessores : ListaDeNodos Número -> ListaDeNodos
+;; Objetivo : dada uma lista de nodos e um número k, retorna uma lista de nodos sucessores,
+;; usando gera-árvore recursivamente
+
+;; Exemplos:
+;; (gera-árvore-sucessores LISTA-NODOS-1 3) = LISTA-NODOS-GERA-ARVORE-SUCESSORES-TESTE-1
+;; (gera-árvore-sucessores LISTA-NODOS-2 2) = LISTA-NODOS-GERA-ARVORE-SUCESSORES-TESTE-2
+(define (gera-árvore-sucessores lista-nodos numero-k)
+  (cond
+    ;; Se a lista de nodos estiver vazia, retornar vazio
+    [(empty? lista-nodos) empty]
+    ;; Senão, retornar a árvore gerada a partir do primeiro nodo junto
+    ;; do restante das árvores geradas a partir do resto de nodos
+    [else
+     (append
+      (list (gera-árvore (first lista-nodos) numero-k))
+      (gera-árvore-sucessores (rest lista-nodos) numero-k))]))
+
+;; Testes:
+
+(check-expect (gera-árvore-sucessores LISTA-NODOS-1 3) LISTA-NODOS-GERA-ARVORE-SUCESSORES-TESTE-1)
+(check-expect (gera-árvore-sucessores LISTA-NODOS-2 2) LISTA-NODOS-GERA-ARVORE-SUCESSORES-TESTE-2)
+ 
+;; gera-árvore : Nodo Número -> Nodo
+;; Objetivo : dado um nodo e um número k, retorna um nodo (árvore)
+;; com todos os sucessores do nodo (incluindo o nodo) que tem valor-g menor ou igual a k
+
+;; Exemplos:
+;; (gera-árvore NODO-1 3) = ARVORE-NODO-1-G3
+;; (gera-árvore NODO-2 2) = ARVORE-NODO-2-G2
 (define (gera-árvore nodo numero-k)
   (cond
+    ;; Se o valor g do nodo for menor que o valor k, retornar o nodo com seus sucessores
+    ;; a partir do nodo expandido
     [(<= (nodo-valor-g nodo) numero-k)
      (make-nodo
       (nodo-estado nodo)
       (nodo-valor-h nodo)
       (nodo-valor-g nodo)
-      (nodo-ls-nodos (gera-arvore-sucessores (nodo-ls-nodos (expande-nodo nodo)) numero-k)))]
-    [else nodo]))
+      (gera-árvore-sucessores (nodo-ls-nodos (expande-nodo nodo)) numero-k))]
+    ;; Senão, retornar os nodos inalterados sem expandir o nodo
+    [else (gera-árvore-sucessores (nodo-ls-nodos nodo) numero-k)]))
+
+;; Testes:
+
+(check-expect (gera-árvore NODO-1 3) ARVORE-NODO-1-G3)
+(check-expect (gera-árvore NODO-2 2) ARVORE-NODO-2-G2)
+
+(desenha-nodo (gera-árvore NODO-2 2))
 
 ;; =========================================
 ;; 55555555555555555555555555555555555555555
 ;; =========================================
 
 ;; estado-é-igual? : Estado Estado -> Booleano
-;; Objetivo : dados dois estados, verifica se são iguais, auxiliando estado-está-em?
+;; Objetivo : dados dois estados, verifica se são iguais
 
 ;; Exemplos:
 ;; (estado-é-igual? ESTADO-1 ESTADO-1) = #true
@@ -519,7 +950,10 @@
 ;; (retorna-nodos-com-estado-lista LISTA-NODOS-2 ESTADO-1) = '()
 (define (retorna-nodos-com-estado-lista lista-nodos estado)
   (cond
+    ;; Se a lista de nodos estiver vazia, retornar vazio
     [(empty? lista-nodos) empty]
+    ;; Senão, combina em uma lista o primeiro nodo com o estado em questão junto do
+    ;; restante dos outros nodos contendo o estado
     [else
      (append
       (retorna-nodos-com-estado (first lista-nodos) estado)
@@ -540,7 +974,9 @@
 ;; (retorna-nodos-com-estado NODO-2-EXPANDIDO ESTADO-1) = '()
 (define (retorna-nodos-com-estado nodo estado)
   (cond
+    ;; Se o estado for igual, retornar uma lista com o nodo e os outros nodos com o estado
     [(estado-é-igual? (nodo-estado nodo) estado) (cons nodo (retorna-nodos-com-estado-lista (nodo-ls-nodos nodo) estado))]
+    ;; Senão, retorna apenas os outros nodos com o estado
     [else (retorna-nodos-com-estado-lista (nodo-ls-nodos nodo) estado)]))
 
 ;; Testes:
@@ -566,7 +1002,7 @@
 
 
 ;; retorna-menor-valor-g-nodos : ListaDeNodos Número -> Número
-;; Objetivo : dada uma lista de nodos um menor valor, percorre recursivamente a lista atualizando o menor valor
+;; Objetivo : dada uma lista de nodos e um menor valor g, percorre recursivamente a lista atualizando o menor valor
 ;; com o menor valor g dentre os nodos
 
 ;; Exemplos:
@@ -574,8 +1010,12 @@
 ;; (retorna-menor-valor-g-nodos LISTA-NODOS-2 1) = 1
 (define (retorna-menor-valor-g-nodos lista-nodos menor-valor)
   (cond
+    ;; Se a lista de nodos estiver vazia, retornar o menor valor (pois percorreu toda lista)
     [(empty? lista-nodos) menor-valor]
+    ;; Se o valor g do primeiro nodo for menor que o menor valor atual,
+    ;; atualizar o menor valor g avançando no restante da lista
     [(< (nodo-valor-g (first lista-nodos)) menor-valor) (retorna-menor-valor-g-nodos (rest lista-nodos) (nodo-valor-g (first lista-nodos)))]
+    ;; Senão, avança no restante da lista
     [else (retorna-menor-valor-g-nodos (rest lista-nodos) menor-valor)]))
 
 ;; Testes:
@@ -595,7 +1035,7 @@
 (define MENSAGEM-ESTADO-NAO-ENCONTRADO "Estado não está contido na árvore.")
 
 ;; busca-estado : Nodo Estado -> RetornoBuscaEstado
-;; Objetivo : dado um nodo e um estado, retorna o menor valor g dentro os nodos que possuem o estado
+;; Objetivo : dado um nodo e um estado, retorna o menor valor g dentro dos nodos que possuem o estado
 ;; ou uma mensagem string caso nenhum nodo tenha o estado
 
 ;; Exemplos:
@@ -603,13 +1043,61 @@
 ;; (busca-estado NODO-2-EXPANDIDO (make-estado 1 4 2 0 3 5 6 7 8)) = MENSAGEM-ESTADO-NAO-ENCONTRADO
 (define (busca-estado nodo estado)
   (cond
+    ;; Se a lista de nodos com o estado estiver vazia, retornar mensagem de não encontrado
     [(empty? (retorna-nodos-com-estado nodo estado)) MENSAGEM-ESTADO-NAO-ENCONTRADO]
+    ;; Senão, retornar o menor valor g dentro os nodos que contém o estado
     [else (retorna-menor-valor-g-nodos (retorna-nodos-com-estado nodo estado) (nodo-valor-g (first (retorna-nodos-com-estado nodo estado))))]))
 
 ;; Testes:
 
 (check-expect (busca-estado NODO-2-EXPANDIDO (make-estado 1 4 2 0 3 5 6 7 8)) 1)
 (check-expect (busca-estado NODO-1-EXPANDIDO (make-estado 1 4 2 0 3 5 6 7 8)) MENSAGEM-ESTADO-NAO-ENCONTRADO)
+
+
+;; conta-exp-f-lista : ListaDeNodos Número -> Número
+;; Objetivo : dada uma lista de nodos e um número k, retorna a soma total dos nodos expandidos com
+;; valor f (g + h) maiores do que k, usando conta-exp-f recursivamente
+
+;; Exemplos:
+;; (conta-exp-f-lista (nodo-ls-nodos NODO-2-EXPANDIDO) 10) = 1
+;; (conta-exp-f-lista (nodo-ls-nodos NODO-2-EXPANDIDO) 1) = 0
+(define (conta-exp-f-lista lista-nodos numero-k)
+  (cond
+    ;; Se a lista de nodos estiver vazia, retornar 0
+    [(empty? lista-nodos) 0]
+    ;; Senão, retornar a soma de 1, caso o primeiro nodo for expandido e
+    ;; com f menor que k, junto à soma total do resto de nodos que cumpre os requisitos
+    [else
+     (+
+      (conta-exp-f (first lista-nodos) numero-k)
+      (conta-exp-f-lista (rest lista-nodos) numero-k))]))
+
+;; Testes:
+
+(check-expect (conta-exp-f-lista (nodo-ls-nodos NODO-2-EXPANDIDO) 10) 0)
+(check-expect (conta-exp-f-lista (nodo-ls-nodos NODO-2-EXPANDIDO) 1) 0)
+
+
+;; conta-exp-f : Nodo Número -> Número
+;; Objetivo : dado um nodo e um número k, retorna o total de nodos que não são folhas que possuem
+;; o valor f (g + h) menores do que o número k
+
+;; Exemplos:
+;; (conta-exp-f NODO-2-EXPANDIDO 10) = 1
+;; (conta-exp-f NODO-2-EXPANDIDO 1) = 0
+(define (conta-exp-f nodo numero-k)
+  (cond
+    ;; Se o nodo tiver nodos sucessores (for expandido) e seu f for maior do que o número k,
+    ;; retornar o total de nodos expandidos de mesma condição somando 1
+    [(and (not (empty? (nodo-ls-nodos nodo))) (< (+ (nodo-valor-g nodo) (nodo-valor-h nodo)) numero-k))
+     (+ 1 (conta-exp-f-lista (nodo-ls-nodos nodo) numero-k))]
+    ;; Senão, retornar o total de nodos expandidos de mesma condição
+    [else (conta-exp-f-lista (nodo-ls-nodos nodo) numero-k)]))
+
+;; Testes:
+
+(check-expect (conta-exp-f NODO-2-EXPANDIDO 10) 1)
+(check-expect (conta-exp-f NODO-2-EXPANDIDO 1) 0)
 
 ;; =========================================
 ;; 66666666666666666666666666666666666666666
