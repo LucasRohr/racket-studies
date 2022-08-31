@@ -1,0 +1,301 @@
+;; ==========================================================
+;; DEFINIÇÕES DE DADOS:
+;; ==========================================================
+
+;; -----------------
+;; TIPO ESTADO
+;; -----------------
+(define-struct estado (zero um dois tres quatro cinco seis sete oito))  
+;; Um elemento do conjunto Estado é
+;;   (make-estado zero um dois tres quatro cinco seis sete oito)
+;;   zero   : Número, tile na pocisão zero.
+;;   um     : Número, tile na pocisão um.
+;;   dois   : Número, tile na pocisão dois.
+;;   tres   : Número, tile na pocisão tres.
+;;   quatro : Número, tile na pocisão quatro.
+;;   cinco  : Número, tile na pocisão cinco.
+;;   seis   : Número, tile na pocisão seis.
+;;   sete   : Número, tile na pocisão sete.
+;;   oito   : Número, tile na pocisão oito.
+
+;; --------------------
+;; TIPO LISTA DE ESTADOS
+;; --------------------
+;; Uma ListaDeEstados é
+;; 1. vazia (empty), ou
+;; 2. (cons s ls), onde 
+;;        s: estado;
+;;       ls: ListaDeEstados
+
+;; -----------------
+;; TIPO NODO
+;; -----------------
+(define-struct nodo (estado valor-h valor-g ls-nodos))  
+;; Um elemento do conjunto Nodo é
+;;   (make-nodo s h g)
+;;   s           : Estado, é um estado.
+;;   h           : Número, valor-h.
+;;   g           : Número, valor-g.
+;;   ls-nodos : ListaDeNodos, é uma lista de nodos.
+
+;; --------------------
+;; TIPO LISTA DE NODOS
+;; --------------------
+;; Uma ListaDeNodos é
+;; 1. vazia (empty), ou
+;; 2. (cons s ls), onde 
+;;        s: nodo;
+;;       ls: ListaDeNodos.
+
+(define goal (make-estado 0 1 2 3 4 5 6 7 8))
+(define s1 (make-estado 1 0 2 3 4 5 6 7 8))
+(define s2 (make-estado 1 4 2 3 0 5 6 7 8))
+(define s3 (make-estado 1 2 3 4 5 6 7 8 0))
+(define s4 (make-estado 0 6 1 7 4 2 3 8 5))
+(define s5 (make-estado 5 0 2 6 4 8 1 7 3))
+(define s6 (make-estado 2 4 7 0 3 6 8 1 5))
+
+;; ==========================================================
+;; FUNÇÔES AUXILIARES:
+;; ==========================================================
+
+;; ==========================================================
+;; DESENHA LISTA DE ESTADOS:
+;; ==========================================================
+
+;; desenha-lista-estados: ListaDeEstados -> Imagem
+;; Objetivo: Dada uma lista de estados, devolve as imagens dos estados desta lista, lado a lado.
+
+(define (desenha-lista-estados _ls)
+  (cond
+    [(empty? _ls) empty-image]
+    [else (beside (desenha-estado (first _ls)) (rectangle 30 0 "outline" "white") (desenha-lista-estados (rest _ls)))]))
+
+;;(check-expect (desenha-lista-estados (list goal)) .)
+;;(check-expect (desenha-lista-estados (list s1 s2 s3 s4 s5 s6)) .)
+
+
+;; desenha-estado: Estado -> Imagem
+;; Objetivo: Dada um estado, devolve a imagem do estado.
+
+(define (desenha-estado _estado)
+  (above 
+   (beside
+    (desenha-tile (estado-zero _estado)) (desenha-tile (estado-um _estado)) (desenha-tile (estado-dois _estado)))
+   (beside
+    (desenha-tile (estado-tres _estado)) (desenha-tile (estado-quatro _estado)) (desenha-tile (estado-cinco _estado)))
+   (beside
+    (desenha-tile (estado-seis _estado)) (desenha-tile (estado-sete _estado)) (desenha-tile (estado-oito _estado)))))
+
+;;(check-expect (desenha-estado goal) .)
+;;(check-expect (desenha-estado s3) .)
+
+
+
+;; desenha-tile Número -> Imagem
+;; Objetivo: Dada um número, devolve a imagem de um tile com o número.
+
+(define (desenha-tile tile)
+  (overlay
+   (text (number->string tile) 20 "black")
+   (rectangle 30 30 "outline" "black")))
+
+;;(check-expect (desenha-tile 2) (overlay (text (number->string 2) 20 "black") (rectangle 30 30 "outline" "black")))
+
+;; (check-expect (desenha-tile 0) (overlay (text (number->string 0) 20 "black") (rectangle 30 30 "outline" "black")))
+
+;; ==========================================================
+;; GERA SUCESSORES:
+;; ==========================================================
+
+;; --------------------
+;; TIPO LISTA DE NÚMEROS
+;; --------------------
+;; Uma ListaDeNúmeros é
+;; 1. vazia (empty), ou
+;; 2. (cons s ls), onde 
+;;        s: Número;
+;;       ls: ListaDeNumeros.
+
+;; Constantes do tipo lista de números para guardar as posições do blank que permitem movimentos em cada sentido.
+
+(define LISTA-MOVE-DIR (list 0 1 3 4 6 7))
+(define LISTA-MOVE-ESQ (list 1 2 4 5 7 8))
+(define LISTA-MOVE-CIMA (list 3 4 5 6 7 8))
+(define LISTA-MOVE-BAIXO (list 0 1 2 3 4 5))
+
+;; está-em? Estado -> ListaDeNúmeros
+;; Objetivo: Dado um número e uma lista de números, diz se este número pertence a lista.
+
+(define (está-em? _pos _lista-pos)
+  (cond
+    [(empty? _lista-pos) false]
+    [(= _pos (first _lista-pos)) true]
+    [else (está-em? _pos (rest _lista-pos))]))
+
+(check-expect (está-em? 0 (list 0 1 3 4 6 7)) true)
+
+(check-expect (está-em? 10 (list 0 1 3 4 6 7)) false)
+
+;; pos-blank:  Estado -> Número
+;; Objetivo: Dado um estado retorna a posição do tile blank.
+
+(define (pos-blank _estado)
+  (cond
+    [(= 0 (estado-zero _estado)) 0]
+    [(= 0 (estado-um _estado)) 1]
+    [(= 0 (estado-dois _estado)) 2]
+    [(= 0 (estado-tres _estado)) 3]
+    [(= 0 (estado-quatro _estado)) 4]
+    [(= 0 (estado-cinco _estado)) 5]
+    [(= 0 (estado-seis _estado)) 6] 
+    [(= 0 (estado-sete _estado)) 7]
+    [(= 0 (estado-oito _estado)) 8]))
+
+(check-expect (pos-blank goal) 0)
+
+(check-expect (pos-blank s3) 8)
+
+;; valor-pos-estado: Número Estado -> Número
+;; Objetivo: Dados uma posição e um estado, devolve o valor guardado nesta posição do estado.
+
+(define (valor-pos-estado _pos _estado)
+  (cond
+    [(= 0 _pos) (estado-zero _estado)]
+    [(= 1 _pos) (estado-um _estado)]
+    [(= 2 _pos) (estado-dois _estado)]
+    [(= 3 _pos) (estado-tres _estado)]
+    [(= 4 _pos) (estado-quatro _estado)]
+    [(= 5 _pos) (estado-cinco _estado)]
+    [(= 6 _pos) (estado-seis _estado)] 
+    [(= 7 _pos) (estado-sete _estado)]
+    [(= 8 _pos) (estado-oito _estado)]))
+
+(check-expect (valor-pos-estado 0 goal) 0)
+
+(check-expect (valor-pos-estado 8 s3) 0)
+
+;; seleciona-lista: String -> ListaDeNúmeros
+;; Objetivo: Dado um sentido, devolve a lista de posições de movimento possíveis neste sentido.
+
+(define (seleciona-lista _sentido)
+  (cond
+    [(string=? "DIR" _sentido) LISTA-MOVE-DIR]
+    [(string=? "ESQ" _sentido) LISTA-MOVE-ESQ]
+    [(string=? "CIMA" _sentido) LISTA-MOVE-CIMA]
+    [(string=? "BAIXO" _sentido) LISTA-MOVE-BAIXO]))
+
+(check-expect (seleciona-lista "DIR") LISTA-MOVE-DIR)
+
+(check-expect (seleciona-lista "BAIXO") LISTA-MOVE-BAIXO)
+
+;; seleciona-troca: Número String -> Número
+;; Objetivo: Dados a posição do blank e um sentido, devolve a posição que deverá trocar com o blank.
+
+(define (seleciona-troca _blank _sentido)
+  (cond
+    [(string=? "DIR" _sentido)   (+ _blank 1)]
+    [(string=? "ESQ" _sentido)   (- _blank 1)]
+    [(string=? "CIMA" _sentido)  (- _blank 3)]
+    [(string=? "BAIXO" _sentido) (+ _blank 3)]))
+
+(check-expect (seleciona-troca (pos-blank goal) "DIR") 1)
+
+(check-expect (seleciona-troca (pos-blank s3) "ESQ") 7)
+
+;; define-pos: Número Número Número Estado -> Número
+;; Objetivo: Dados a posição atual e duas outras posições p1 e p2, se a atual for p1 ou p2, retorna o valor da outra posição (se for p1, retorna p2 e vice versa, para trocar os valores),
+;; senão retorna o valor da posição atual.
+
+(define (define-pos _pos _pos1 _pos2 _estado)
+  (cond
+         [(= _pos _pos1) (valor-pos-estado _pos2 _estado)]
+         [(= _pos _pos2) (valor-pos-estado _pos1 _estado)]
+         [else (valor-pos-estado _pos _estado)]))
+
+(check-expect (define-pos 0 (pos-blank goal) (seleciona-troca (pos-blank goal) "DIR") goal) 1)
+
+(check-expect (define-pos 8 (pos-blank s3) (seleciona-troca (pos-blank s3) "ESQ") s3) 8)
+
+;; gera-movimento: Estado Número Número -> Estado
+;; Objetivo: Dados o estado atual, e as posições que devem ser trocadas, gera o próximo estado.
+
+(define (gera-movimento _estado _pos1 _pos2)
+  (make-estado (define-pos 0 _pos1 _pos2 _estado)
+               (define-pos 1 _pos1 _pos2 _estado)
+               (define-pos 2 _pos1 _pos2 _estado)
+               (define-pos 3 _pos1 _pos2 _estado)
+               (define-pos 4 _pos1 _pos2 _estado)
+               (define-pos 5 _pos1 _pos2 _estado)
+               (define-pos 6 _pos1 _pos2 _estado)
+               (define-pos 7 _pos1 _pos2 _estado)
+               (define-pos 8 _pos1 _pos2 _estado)))
+
+(check-expect (gera-movimento goal (pos-blank goal) (seleciona-troca (pos-blank goal) "DIR")) (make-estado 1 0 2 3 4 5 6 7 8))
+
+(check-expect (gera-movimento s3 (pos-blank s3) (seleciona-troca (pos-blank s3) "ESQ")) (make-estado 1 2 3 4 5 6 7 0 8))
+
+;; gera-sucessor: String Estado -> ListaDeEstados
+;; Objetivo: Dado um sentdo e um estado, gera uma lista contendo o estado sucessor deste estado, se houver,
+;; ou uma lista vazia, caso não seja possível um movimento neste sentido.
+
+(define (gera-sucessor _sentido _estado)
+  (cond
+    ;; Se o movimento não for possível, devolver a lista vazia.
+    [(not (está-em? (pos-blank _estado) (seleciona-lista _sentido))) empty]
+    ;; Senão, fazer o movimento, gerando uma lista com um elemento apenas, o novo estado.
+    [else (list (gera-movimento _estado (pos-blank _estado) (seleciona-troca (pos-blank _estado) _sentido)))]))
+
+(check-expect (gera-sucessor "DIR" goal) (list (make-estado 1 0 2 3 4 5 6 7 8)))
+
+(check-expect (gera-sucessor "DIR" s3) empty)
+
+;; gera-sucessores: Estado -> ListaDeEstados
+;; Objetivo: Dado um estado retorna uma lista de estados.
+
+(define (gera-sucessores _estado)
+  (append
+   (gera-sucessor "ESQ" _estado)
+   (gera-sucessor "BAIXO" _estado)
+   (gera-sucessor "DIR" _estado)
+   (gera-sucessor "CIMA" _estado)))
+
+(check-expect (gera-sucessores goal) (list
+ (make-estado 3 1 2 0 4 5 6 7 8)
+ (make-estado 1 0 2 3 4 5 6 7 8)))
+
+(check-expect (gera-sucessores s2) (list
+ (make-estado 1 4 2 0 3 5 6 7 8)
+ (make-estado 1 4 2 3 7 5 6 0 8)
+ (make-estado 1 4 2 3 5 0 6 7 8)
+ (make-estado 1 0 2 3 4 5 6 7 8)))
+
+(check-expect (gera-sucessores s3) (list (make-estado 1 2 3 4 5 6 7 0 8) (make-estado 1 2 3 4 5 0 7 8 6)))
+
+;; =========================================
+;; NÃO MODIFIQUE O CÓDIGO ACIMA DESTA LINHA. 
+;; =========================================
+
+;; =========================================
+;; 11111111111111111111111111111111111111111 
+;; =========================================
+
+;; =========================================
+;; 22222222222222222222222222222222222222222 
+;; =========================================
+
+;; =========================================
+;; 33333333333333333333333333333333333333333
+;; =========================================
+
+;; =========================================
+;; 44444444444444444444444444444444444444444
+;; =========================================
+
+;; =========================================
+;; 55555555555555555555555555555555555555555
+;; =========================================
+
+;; =========================================
+;; 66666666666666666666666666666666666666666
+;; =========================================
